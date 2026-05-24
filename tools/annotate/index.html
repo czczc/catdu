@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>meowphosis · annotate</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>meowphosis · annotate</h1>
+      <div class="actions">
+        <button id="load-annot-btn" type="button">Load annotations…</button>
+        <button id="export-btn" type="button">Export annotations</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="controls">
+        <div class="row">
+          <label class="field">
+            Sheet
+            <input type="file" id="sheet-input" accept="image/*" />
+          </label>
+          <label class="field">
+            Top
+            <input id="top-cat" value="mythology" size="14" />
+          </label>
+          <label class="field">
+            Sub
+            <input id="sub-cat" value="greek" size="10" />
+          </label>
+          <label class="field">
+            Set#
+            <input id="set-num" type="number" value="1" min="1" />
+          </label>
+        </div>
+        <div class="row">
+          <label class="field">
+            Rows
+            <input id="rows" type="number" value="12" min="1" />
+          </label>
+          <label class="field">
+            Cols
+            <input id="cols" type="number" value="6" min="1" />
+          </label>
+          <button id="reset-grid-btn" type="button">Fit to image</button>
+          <span class="spacer"></span>
+          <span class="cell-info">Cell <span id="cell-num">—</span> of <span id="cell-total">—</span></span>
+          <button id="prev-cell-btn" type="button">← Prev</button>
+          <button id="next-cell-btn" type="button">Next →</button>
+        </div>
+        <div class="row tools">
+          <span class="label">Mode (<span id="mode-label">grid</span>):</span>
+          <label><input type="radio" name="mode" value="grid" checked /> grid <kbd>g</kbd></label>
+          <label><input type="radio" name="mode" value="cat" /> <span class="swatch cat"></span>cat <kbd>c</kbd></label>
+          <label><input type="radio" name="mode" value="text" /> <span class="swatch text"></span>text <kbd>t</kbd></label>
+          <span class="spacer"></span>
+          <button id="set-template-btn" type="button">Set template…</button>
+          <button id="clear-template-btn" type="button">Clear template</button>
+        </div>
+        <div class="row">
+          <span id="template-info" class="hint small"></span>
+        </div>
+      </section>
+
+      <section class="canvas-area">
+        <canvas id="canvas" width="0" height="0"></canvas>
+      </section>
+
+      <aside class="cell-detail">
+        <h2>Selected cell</h2>
+        <div id="selected-info" class="hint">Click a grid cell on the image to select it.</div>
+        <div id="bbox-info" class="bbox-info"></div>
+        <label class="field block">
+          <input id="skip-cell" type="checkbox" /> Skip this cell
+        </label>
+        <label class="field block">
+          English override (optional)
+          <input id="english-override" type="text" placeholder="e.g. Zeus — leave blank to let the LLM identify" />
+        </label>
+        <div class="row">
+          <button id="reset-cell-bbox-btn" type="button">Reset to template</button>
+        </div>
+        <div class="hint small">
+          <strong>grid mode</strong>: drag the orange grid lines. <strong>cat / text mode</strong>: click "Set template…" then drag inside one cell to apply across all cells. After templating, drag any cell's box (interior = move, edges/corners = resize) to fine-tune.
+        </div>
+      </aside>
+    </main>
+
+    <footer>
+      <span id="status" class="hint">No sheet loaded.</span>
+      <span class="hint small">v4 · localStorage autosave</span>
+    </footer>
+
+    <script src="annotate.js"></script>
+  </body>
+</html>

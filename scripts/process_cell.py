@@ -1,9 +1,8 @@
 """Normalize a single cell image and upsert its logo record.
 
-Pipeline: mask the label region with the sheet's cream background → find
-tight bbox of remaining non-background pixels (the cat) → letterbox to
-200×200 → write the PNG → upsert the `logo` row → invoke
-`scripts/build_manifest.py` to regenerate the JSON shards.
+Pipeline: crop the cell to the LLM-provided `cat_bbox` → letterbox onto a
+canonical `#fefcf7` canvas at 90% scale → write the PNG → upsert the `logo`
+row → invoke `scripts/build_manifest.py` to regenerate the JSON shards.
 
 Invoked by `.claude/skills/process-cell/SKILL.md` after the in-session LLM
 extracts the cell's metadata. The metadata JSON arrives on stdin; the cell
@@ -17,77 +16,93 @@ import json
 import sqlite3
 import subprocess
 import sys
-from collections import Counter
 from pathlib import Path
 
-from PIL import Image, ImageChops
+from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
 DB_PATH = ROOT / "data" / "meowphosis.db"
 PUBLIC = ROOT / "public"
 TARGET = 200
-MARGIN_PCT = 0.05
-DIFF_THRESHOLD = 12  # how much a pixel must differ from bg to count as content
+
+# Canonical logo background. All meowphosis logos share this cream regardless
+# of subtle variations in the source sheet's printed background.
+BG_COLOR = (0xFE, 0xFC, 0xF7)
+
+# Cat content's LONG axis occupies CONTENT_SCALE of the 200x200 frame; short
+# axis is letterboxed with bg, so its margin depends on the cat_bbox aspect
+# ratio (taller-than-wide bboxes get wider side bars).
+CONTENT_SCALE = 0.95
 
 
-def detect_bg(img: Image.Image) -> tuple[int, int, int]:
-    """Sample the four corners and return the mode color.
-
-    Corners are reliably background on every cell layout we've seen — the
-    cream extends to the edges of each cell. Using the mode of four samples
-    handles the rare case where one corner clips a glyph or stroke.
-    """
-    w, h = img.size
-    samples = [
-        img.getpixel((1, 1)),
-        img.getpixel((w - 2, 1)),
-        img.getpixel((1, h - 2)),
-        img.getpixel((w - 2, h - 2)),
-    ]
-    return Counter(samples).most_common(1)[0][0]
+def _clamp_bbox(bbox: list[int], size: tuple[int, int]) -> tuple[int, int, int, int]:
+    x1, y1, x2, y2 = (max(0, int(v)) for v in bbox)
+    x2 = min(size[0], x2)
+    y2 = min(size[1], y2)
+    return x1, y1, x2, y2
 
 
 def normalize_cell(
     cell_image_path: Path,
-    label_bbox: list[int] | None,
+    cat_bbox: list[int],
+    mask_regions: list[list[int]] | None,
     out_path: Path,
 ) -> None:
+    """Mask listed regions with canonical bg, crop to cat_bbox, letterbox.
+
+    `cat_bbox` is the LLM-provided positive bbox of the cat illustration
+    (with its iconography). `mask_regions` is a list of rectangles to fill
+    with `BG_COLOR` before cropping — used for text labels, neighbor-cell
+    bleed, or any non-cat content that falls inside `cat_bbox`.
+
+    Why both: a tight `cat_bbox` produces portrait crops for cells with
+    portrait-aspect cats, which letterbox into the square frame with wide
+    side bars. A wider `cat_bbox` (extending into cream space around the
+    cat) reduces the letterbox effect — but that wider area often contains
+    text or bleed. Masking first lets the LLM widen the bbox safely.
+    """
     img = Image.open(cell_image_path).convert("RGB")
-    bg = detect_bg(img)
 
-    masked = img.copy()
-    if label_bbox and len(label_bbox) == 4:
-        x1, y1, x2, y2 = (max(0, int(v)) for v in label_bbox)
-        x2 = min(masked.size[0], x2)
-        y2 = min(masked.size[1], y2)
+    if not cat_bbox or len(cat_bbox) != 4:
+        raise ValueError(f"cat_bbox required, got: {cat_bbox!r}")
+
+    work = img.copy()
+    for region in mask_regions or []:
+        if not region or len(region) != 4:
+            continue
+        x1, y1, x2, y2 = _clamp_bbox(region, work.size)
         if x2 > x1 and y2 > y1:
-            patch = Image.new("RGB", (x2 - x1, y2 - y1), bg)
-            masked.paste(patch, (x1, y1))
+            patch = Image.new("RGB", (x2 - x1, y2 - y1), BG_COLOR)
+            work.paste(patch, (x1, y1))
 
-    # Difference against a solid-bg image, threshold the result, take getbbox.
-    # Thresholding rejects sub-pixel anti-aliasing fringe that would otherwise
-    # extend the bbox beyond the actual content.
-    bg_img = Image.new("RGB", masked.size, bg)
-    diff = ImageChops.difference(masked, bg_img).convert("L")
-    mask = diff.point(lambda p: 255 if p > DIFF_THRESHOLD else 0)
-    bbox = mask.getbbox()
-    if bbox is None:
-        bbox = (0, 0, masked.size[0], masked.size[1])
-
-    x1, y1, x2, y2 = bbox
-    margin = int(max(x2 - x1, y2 - y1) * MARGIN_PCT)
-    x1 = max(0, x1 - margin)
-    y1 = max(0, y1 - margin)
-    x2 = min(masked.size[0], x2 + margin)
-    y2 = min(masked.size[1], y2 + margin)
-    cat = masked.crop((x1, y1, x2, y2))
+    # cat_bbox can extend beyond the cell boundary (negative or > cell size);
+    # we pad with canonical bg so the LLM can pick a square bbox centered on
+    # an asymmetrically-placed cat without being constrained by cell edges.
+    x1, y1, x2, y2 = (int(v) for v in cat_bbox)
+    if x2 <= x1 or y2 <= y1:
+        raise ValueError(f"cat_bbox is empty or inverted: {cat_bbox!r}")
+    pad_left = max(0, -x1)
+    pad_top = max(0, -y1)
+    pad_right = max(0, x2 - work.size[0])
+    pad_bottom = max(0, y2 - work.size[1])
+    if pad_left or pad_top or pad_right or pad_bottom:
+        new_w = work.size[0] + pad_left + pad_right
+        new_h = work.size[1] + pad_top + pad_bottom
+        padded = Image.new("RGB", (new_w, new_h), BG_COLOR)
+        padded.paste(work, (pad_left, pad_top))
+        work = padded
+        x1 += pad_left
+        y1 += pad_top
+        x2 += pad_left
+        y2 += pad_top
+    cat = work.crop((x1, y1, x2, y2))
 
     cw, ch = cat.size
-    scale = min(TARGET / cw, TARGET / ch)
+    scale = min(TARGET / cw, TARGET / ch) * CONTENT_SCALE
     nw, nh = max(1, int(cw * scale)), max(1, int(ch * scale))
     resized = cat.resize((nw, nh), Image.LANCZOS)
 
-    canvas = Image.new("RGB", (TARGET, TARGET), bg)
+    canvas = Image.new("RGB", (TARGET, TARGET), BG_COLOR)
     canvas.paste(resized, ((TARGET - nw) // 2, (TARGET - nh) // 2))
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -179,7 +194,12 @@ def main() -> None:
     )
     image_abs = PUBLIC / image_rel
 
-    normalize_cell(args.cell_image, record.get("label_bbox"), image_abs)
+    normalize_cell(
+        args.cell_image,
+        record["cat_bbox"],
+        record.get("mask_regions"),
+        image_abs,
+    )
     print(f"Wrote {image_rel}", file=sys.stderr)
 
     upsert_logo(record, args.top, args.sub, args.set_num, image_rel)

@@ -37,7 +37,8 @@ Produce a JSON record with exactly these keys:
 | `wiki_url` | string \| null | `https://en.wikipedia.org/wiki/<EnglishName>` if confidently resolvable, otherwise `null`. |
 | `iconography` | string[] | 1–4 short visual cues you can SEE in the cat illustration that link it to the character. Examples — Zeus: `["lightning bolt", "scepter"]`, Loki: `["black coat", "snake"]`, Demeter: `["wheat sheaf"]`. Avoid generic words like "crown" if every cat has one; prefer character-specific cues. |
 | `confidence` | number, 0..1 | Your overall confidence in this cell's data. Drop below 0.7 if the label is ambiguous, the iconography doesn't match the named character, or the wiki URL is uncertain. |
-| `label_bbox` | [x1, y1, x2, y2] | Pixel bounding box of the cell's text region (number + Chinese label), in cell-image pixel coordinates (origin top-left). Used to mask out the text before tight-cropping the cat. Err slightly on the larger side — over-masking text is fine, under-masking leaks text into the logo. |
+| `cat_bbox` | [x1, y1, x2, y2] | Pixel bounding box of the **logo content** in the cell, in cell-image pixel coordinates (origin top-left). The pipeline crops to this and letterboxes. **Make it square** (`x2 - x1 == y2 - y1`) centered on the cat — cells are not square (typically ~165×131), so a square bbox centered on the cat will usually extend beyond the cell boundary on one side. That's OK — the pipeline auto-pads with canonical bg (`#fefcf7`) on whichever side overflows. Square bbox → no letterbox margins → cat fills the 200×200 frame with uniform ~5px breathing room. Include the cat's full body and all attached iconography in the bbox; mask anything that's not the cat via `mask_regions`. |
+| `mask_regions` | list[[x1, y1, x2, y2]] | Optional. Rectangles to fill with canonical bg (`#fefcf7`) BEFORE the crop. Use this to wipe text labels, cell numbers, or neighbor-cell bleed that fall INSIDE the cat_bbox. Without masking, those would appear in the final logo. Typical use: cat_bbox wraps the cat plus surrounding cream space; mask_regions wipe the text that lives in that cream space. Order doesn't matter; regions can overlap. Empty list / omitted if there's nothing to mask. |
 
 ### 3. Validate the wiki URL
 
@@ -71,13 +72,11 @@ echo '<JSON_RECORD>' | uv run python scripts/process_cell.py \
 
 The script:
 
-1. Samples the cell's cream background from corner pixels.
-2. Fills `label_bbox` with the bg color (mask the text).
-3. Finds the tight bbox of all remaining non-bg pixels (the cat).
-4. Crops, adds a 5% margin, letterbox-pads to 200×200.
-5. Writes `public/logos/<top>/<sub>/<set>/<english_slug>.png`.
-6. Upserts the `logo` row (newer overwrites by `(set_id, english_slug)`).
-7. Calls `scripts/build_manifest.py` to regenerate the JSON shards.
+1. Crops the cell to `cat_bbox`.
+2. Scales the crop so its longer side is 90% of 200px; letterboxes onto a canonical `#fefcf7` canvas, centered.
+3. Writes `public/logos/<top>/<sub>/<set>/<english_slug>.png`.
+4. Upserts the `logo` row (newer overwrites by `(set_id, english_slug)`).
+5. Calls `scripts/build_manifest.py` to regenerate the JSON shards.
 
 ### 5. Report
 
