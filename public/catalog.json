@@ -1,0 +1,15 @@
+{
+  "categories": [
+    {
+      "slug": "mythology",
+      "display": "Mythology",
+      "sub_categories": [
+        {
+          "slug": "greek",
+          "display": "Greek",
+          "logo_count": 1
+        }
+      ]
+    }
+  ]
+}

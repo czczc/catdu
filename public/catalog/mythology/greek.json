@@ -1,0 +1,32 @@
+{
+  "top": {
+    "slug": "mythology",
+    "display": "Mythology"
+  },
+  "sub": {
+    "slug": "greek",
+    "display": "Greek"
+  },
+  "sets": [
+    {
+      "set_number": 1,
+      "display": "Chibi Watercolor",
+      "style_description": "Soft watercolor chibi cats with thematic accessories on a cream background",
+      "logos": [
+        {
+          "id": "mythology/greek/1/zeus",
+          "english_name": "Zeus",
+          "english_slug": "zeus",
+          "chinese_name": "宙斯",
+          "wiki_url": "https://en.wikipedia.org/wiki/Zeus",
+          "iconography": [
+            "lightning bolt",
+            "scepter"
+          ],
+          "image_path": "logos/mythology/greek/1/zeus.png",
+          "confidence": 1.0
+        }
+      ]
+    }
+  ]
+}
