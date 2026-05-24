@@ -1,73 +1,48 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, computed } from "vue";
+import { route, href } from "./router.js";
+import Home from "./views/Home.vue";
+import SubCategory from "./views/SubCategory.vue";
+import LogoDetail from "./views/LogoDetail.vue";
+import Search from "./views/Search.vue";
 
-const base = import.meta.env.BASE_URL;
-const shard = ref(null);
-const error = ref(null);
+const query = ref("");
 
-onMounted(async () => {
-  try {
-    const catalog = await fetch(`${base}catalog.json`).then((r) => r.json());
-    // Tracer: load the first sub-category's shard. Slice #5 adds routing/browse.
-    const top = catalog.categories[0];
-    const sub = top.sub_categories[0];
-    shard.value = await fetch(
-      `${base}catalog/${top.slug}/${sub.slug}.json`,
-    ).then((r) => r.json());
-  } catch (e) {
-    error.value = e.message;
-  }
+const view = computed(() => {
+  if (query.value.trim()) return { name: "search" };
+  return route.value;
 });
 </script>
 
 <template>
-  <main>
-    <template v-if="shard">
-      <h1>{{ shard.sub.display }} {{ shard.top.display }}</h1>
-      <p class="subtitle">
-        {{ shard.sets.reduce((n, s) => n + s.logos.length, 0) }} logos across
-        {{ shard.sets.length }} set{{ shard.sets.length === 1 ? "" : "s" }}.
-      </p>
-      <section v-for="set in shard.sets" :key="set.set_number">
-        <h2>Set {{ set.set_number }}: {{ set.display }}</h2>
-        <p class="style-desc">{{ set.style_description }}</p>
-        <div class="logos">
-          <figure v-for="logo in set.logos" :key="logo.id">
-            <img
-              :src="`${base}${logo.image_path}`"
-              :alt="logo.english_name"
-              width="200"
-              height="200"
-            />
-            <figcaption>
-              <div>
-                <span class="name">{{ logo.english_name }}</span>
-                <span v-if="logo.chinese_name" class="chinese"
-                  >{{ logo.chinese_name }}</span
-                >
-              </div>
-              <a
-                v-if="logo.wiki_url"
-                class="wiki"
-                :href="logo.wiki_url"
-                target="_blank"
-                rel="noopener"
-                >wiki ↗</a
-              >
-              <div class="iconography">
-                <span
-                  v-for="icon in logo.iconography"
-                  :key="icon"
-                  class="chip"
-                  >{{ icon }}</span
-                >
-              </div>
-            </figcaption>
-          </figure>
+  <div class="site">
+    <header class="site-header">
+      <div class="site-header-inner">
+        <a class="wordmark" :href="href({ name: 'home' })"
+          >meowphosis<span class="ornament">✦</span></a
+        >
+        <span class="tagline">a catalog of cat logos</span>
+        <div class="search-wrap">
+          <input
+            class="search"
+            type="search"
+            v-model="query"
+            placeholder="Search iconography, name…"
+            aria-label="Search"
+          />
         </div>
-      </section>
-    </template>
-    <p v-else-if="error" class="loading">Failed to load catalog: {{ error }}</p>
-    <p v-else class="loading">Loading…</p>
-  </main>
+      </div>
+    </header>
+
+    <main class="site-main">
+      <Search v-if="view.name === 'search'" :query="query" />
+      <Home v-else-if="view.name === 'home'" />
+      <SubCategory v-else-if="view.name === 'sub'" />
+      <LogoDetail v-else-if="view.name === 'logo'" />
+    </main>
+
+    <footer class="site-footer">
+      meowphosis <span class="ornament">✦</span> cats all the way down
+    </footer>
+  </div>
 </template>
