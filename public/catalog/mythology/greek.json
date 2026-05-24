@@ -14,6 +14,18 @@
       "style_description": "Soft watercolor chibi cats with thematic accessories on a cream background",
       "logos": [
         {
+          "id": "mythology/greek/1/hera",
+          "english_name": "Hera",
+          "english_slug": "hera",
+          "chinese_name": "赫拉",
+          "wiki_url": "https://en.wikipedia.org/wiki/Hera",
+          "iconography": [
+            "crown"
+          ],
+          "image_path": "logos/mythology/greek/1/hera.png",
+          "confidence": 0.95
+        },
+        {
           "id": "mythology/greek/1/zeus",
           "english_name": "Zeus",
           "english_slug": "zeus",
