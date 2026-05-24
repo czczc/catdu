@@ -111,3 +111,32 @@ footer {
   background: var(--card);
   border-top: 1px solid var(--border);
 }
+
+.tools-nav {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 16px;
+  background: #1c1a15;
+  color: #fefcf7;
+  font: 13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+.tools-nav-brand {
+  font: italic 600 15px Georgia, serif;
+  color: #d97a3e;
+  margin-right: 8px;
+}
+.tools-nav a {
+  color: #fefcf7;
+  text-decoration: none;
+  opacity: 0.6;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+.tools-nav a:hover {
+  opacity: 1;
+}
+.tools-nav a.active {
+  opacity: 1;
+  background: rgba(254, 252, 247, 0.12);
+}

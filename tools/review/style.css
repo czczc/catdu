@@ -1,0 +1,320 @@
+:root {
+  --cream: #fefcf7;
+  --cream-2: #f6f0e1;
+  --ink: #1c1a15;
+  --ink-soft: #4a443a;
+  --ink-mute: #8a8170;
+  --rust: #b8480e;
+  --rule: rgba(28, 26, 21, 0.18);
+  --danger: #b91c1c;
+  --warn: #f5d27a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--cream);
+  color: var(--ink);
+  font: 14px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+header {
+  position: sticky;
+  top: 0;
+  background: var(--cream);
+  border-bottom: 1px solid var(--rule);
+  padding: 12px 20px;
+  z-index: 10;
+}
+
+h1 {
+  margin: 0 0 8px;
+  font: italic 600 22px/1.1 Georgia, serif;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.controls label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.controls select,
+.controls input[type="text"],
+.controls input[type="number"] {
+  font: inherit;
+  padding: 4px 8px;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: var(--cream);
+}
+
+button {
+  font: inherit;
+  padding: 6px 12px;
+  background: var(--ink);
+  color: var(--cream);
+  border: 1px solid var(--ink);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button[disabled] {
+  background: var(--cream-2);
+  color: var(--ink-mute);
+  border-color: var(--rule);
+  cursor: not-allowed;
+}
+
+button.delete {
+  background: transparent;
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+button.delete:hover {
+  background: var(--danger);
+  color: var(--cream);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.counts {
+  font-size: 13px;
+  color: var(--ink-mute);
+}
+
+main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  display: grid;
+  gap: 16px;
+}
+
+.cell {
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--cream);
+  padding: 14px 16px;
+}
+
+.cell.flagged {
+  background: var(--cream-2);
+  border-color: rgba(184, 72, 14, 0.4);
+}
+
+.cell.dirty {
+  border-color: var(--rust);
+  box-shadow: 0 0 0 1px var(--rust);
+}
+
+.cell-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.num {
+  font: italic 600 18px Georgia, serif;
+}
+
+.flags {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.flag {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--warn);
+  color: var(--ink);
+}
+
+.cell-body {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.previews {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.previews figure {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ink-mute);
+}
+
+.previews figcaption {
+  margin-bottom: 4px;
+}
+
+.previews .composite {
+  width: 220px;
+  display: block;
+  border: 1px solid var(--rule);
+  background: var(--cream);
+}
+
+.previews .logo {
+  width: 150px;
+  height: 150px;
+  display: block;
+  border: 1px solid var(--rule);
+  background: var(--cream);
+  object-fit: contain;
+}
+
+.previews .logo[src=""],
+.previews .logo:not([src]) {
+  background: var(--cream-2);
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 14px;
+}
+
+.fields label {
+  display: flex;
+  flex-direction: column;
+  font-size: 11px;
+  color: var(--ink-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.fields label.full {
+  grid-column: 1 / -1;
+}
+
+.fields input {
+  font: 14px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  padding: 6px 8px;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: var(--cream);
+  color: var(--ink);
+  text-transform: none;
+  letter-spacing: normal;
+  margin-top: 3px;
+}
+
+.fields input:focus {
+  outline: 2px solid var(--rust);
+  outline-offset: -1px;
+}
+
+.icon-edit {
+  margin-top: 4px;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 6px;
+  background: var(--cream);
+}
+
+.icon-edit .chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.icon-edit .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  padding: 2px 4px 2px 8px;
+  background: var(--cream-2);
+  color: var(--ink-soft);
+  border-radius: 999px;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.icon-edit .chip button {
+  background: transparent;
+  border: none;
+  color: var(--ink-mute);
+  padding: 0 4px;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.icon-edit .icon-add {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 2px 4px;
+  font-size: 13px;
+}
+
+.icon-edit .icon-add:focus {
+  outline: none;
+}
+
+.apply-output {
+  max-width: 1200px;
+  margin: 0 auto 40px;
+  padding: 12px 16px;
+  background: var(--ink);
+  color: var(--cream);
+  font: 12px/1.4 ui-monospace, Menlo, Consolas, monospace;
+  white-space: pre-wrap;
+  border-radius: 4px;
+}
+
+.tools-nav {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 16px;
+  background: var(--ink);
+  color: var(--cream);
+  font-size: 13px;
+}
+.tools-nav-brand {
+  font: italic 600 15px Georgia, serif;
+  color: #d97a3e;
+  margin-right: 8px;
+}
+.tools-nav a {
+  color: var(--cream);
+  text-decoration: none;
+  opacity: 0.6;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+.tools-nav a:hover {
+  opacity: 1;
+}
+.tools-nav a.active {
+  opacity: 1;
+  background: rgba(254, 252, 247, 0.12);
+}

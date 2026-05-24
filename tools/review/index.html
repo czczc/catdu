@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>meowphosis · review</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <nav class="tools-nav">
+      <span class="tools-nav-brand">meowphosis</span>
+      <a href="/annotate/">annotate</a>
+      <a href="/review/" class="active">review</a>
+    </nav>
+    <header>
+      <h1>meowphosis · review</h1>
+      <div class="controls">
+        <label>
+          Sheet
+          <select id="sheet-select"></select>
+        </label>
+        <label>
+          <input type="checkbox" id="flagged-only" checked />
+          flagged only
+        </label>
+        <span id="counts" class="counts"></span>
+        <span class="spacer"></span>
+        <button id="apply-btn" type="button">Apply → DB</button>
+      </div>
+    </header>
+
+    <main id="cells"></main>
+
+    <pre id="apply-output" class="apply-output" hidden></pre>
+
+    <template id="cell-template">
+      <article class="cell" data-cell="">
+        <header class="cell-head">
+          <span class="num"></span>
+          <span class="flags"></span>
+          <span class="spacer"></span>
+          <button type="button" class="save" disabled>Save</button>
+          <button type="button" class="delete">Delete cell</button>
+        </header>
+        <div class="cell-body">
+          <div class="previews">
+            <figure>
+              <figcaption>Composite (cat + label)</figcaption>
+              <img class="composite" alt="composite" />
+            </figure>
+            <figure>
+              <figcaption>Current logo</figcaption>
+              <img class="logo" alt="logo" />
+            </figure>
+          </div>
+          <form class="fields">
+            <label>
+              chinese_name
+              <input data-field="chinese_name" type="text" />
+            </label>
+            <label>
+              english_name
+              <input data-field="english_name" type="text" />
+            </label>
+            <label>
+              english_slug
+              <input data-field="english_slug" type="text" />
+            </label>
+            <label>
+              wiki_url
+              <input data-field="wiki_url" type="text" placeholder="(none)" />
+            </label>
+            <label>
+              confidence
+              <input data-field="confidence" type="number" min="0" max="1" step="0.05" />
+            </label>
+            <label class="full">
+              iconography
+              <div class="icon-edit">
+                <div class="chips"></div>
+                <input class="icon-add" type="text" placeholder="add iconography, press Enter" />
+              </div>
+            </label>
+          </form>
+        </div>
+      </article>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
