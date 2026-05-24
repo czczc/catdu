@@ -1,8 +1,12 @@
 name: Deploy to GitHub Pages
 
 on:
-  push:
-    branches: [main]
+  # Auto-deploy on push is intentionally disabled until the Browse UX slice
+  # (#5) lands. Until then, trigger this workflow manually:
+  #   gh workflow run deploy.yml
+  # To restore auto-deploy on push, re-add:
+  #   push:
+  #     branches: [main]
   workflow_dispatch:
 
 permissions:
