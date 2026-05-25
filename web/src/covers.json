@@ -1,0 +1,32 @@
+{
+  "mythology": [
+    "mythology/greek/1/zeus",
+    "mythology/norse/1/thor",
+    "mythology/japanese/1/amaterasu",
+    "mythology/greek/1/athena"
+  ],
+  "geography": [
+    "geography/china/1/beijing",
+    "geography/china/1/shanghai",
+    "geography/usa/1/california",
+    "geography/usa/1/new-york"
+  ],
+  "game": [
+    "game/league-of-legends/1/ahri",
+    "game/league-of-legends/1/jinx",
+    "game/league-of-legends/1/yasuo",
+    "game/league-of-legends/1/garen"
+  ],
+  "institution": [
+    "institution/usa/1/mit",
+    "institution/usa/1/harvard",
+    "institution/usa/1/stanford",
+    "institution/usa/1/nasa-jpl"
+  ],
+  "science": [
+    "science/physics/1/higgs-boson",
+    "science/physics/1/electron",
+    "science/physics/1/photon",
+    "science/physics/1/top-quark"
+  ]
+}
