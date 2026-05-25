@@ -140,3 +140,69 @@ footer {
   opacity: 1;
   background: rgba(254, 252, 247, 0.12);
 }
+
+.load-dialog {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0;
+  min-width: 420px;
+  max-width: 560px;
+  background: var(--card);
+}
+.load-dialog::backdrop {
+  background: rgba(28, 26, 21, 0.4);
+}
+.load-dialog header,
+.load-dialog footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.load-dialog footer {
+  border-bottom: none;
+  border-top: 1px solid var(--border);
+  justify-content: flex-end;
+}
+.load-dialog .close {
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--muted);
+  cursor: pointer;
+}
+.load-list {
+  list-style: none;
+  margin: 0;
+  padding: 6px 0;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+.load-list li {
+  padding: 10px 14px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.load-list li:hover {
+  background: var(--bg);
+}
+.load-list .row-main {
+  font-weight: 600;
+}
+.load-list .row-meta {
+  font-size: 12px;
+  color: var(--muted);
+}
+.load-list .missing {
+  color: #b91c1c;
+}
+.load-list .empty {
+  padding: 20px;
+  text-align: center;
+  color: var(--muted);
+}

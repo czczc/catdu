@@ -56,6 +56,11 @@ const els = {
   resetCellBbox: document.getElementById("reset-cell-bbox-btn"),
   exportBtn: document.getElementById("export-btn"),
   loadAnnotBtn: document.getElementById("load-annot-btn"),
+  loadDialog: document.getElementById("load-dialog"),
+  loadList: document.getElementById("load-list"),
+  loadFromDiskBtn: document.getElementById("load-from-disk-btn"),
+  scopeRow: document.getElementById("scope-row"),
+  scopeRadios: document.querySelectorAll('input[name="scope"]'),
   status: document.getElementById("status"),
 };
 
@@ -80,6 +85,7 @@ const state = {
   cells: {},
   selected: null,
   mode: "grid", // "grid" | "cat" | "text"
+  applyScope: "cell", // "cell" | "column" | "row" — only used in cat/text modes
 };
 
 const volatile = {
@@ -102,6 +108,9 @@ const volatile = {
   bboxKind: null, // "cat" | "text"
   bboxHandle: null, // "n"|"s"|"e"|"w"|"ne"|"nw"|"se"|"sw"|"move"
   bboxStartCoords: null, // initial bbox [x1,y1,x2,y2]
+  // Sibling bboxes captured at mousedown when applyScope is column/row,
+  // so the same drag delta replays from each sibling's starting position.
+  bboxSiblingStarts: null, // [{key, start: [x1,y1,x2,y2]}, …]
 };
 
 // ---------- Persistence ----------
@@ -123,6 +132,7 @@ function saveState() {
     cells: state.cells,
     selected: state.selected,
     mode: state.mode,
+    applyScope: state.applyScope,
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
 }
@@ -145,6 +155,11 @@ function loadState() {
     state.mode = data.mode || "grid";
     const radio = document.querySelector(`input[name="mode"][value="${state.mode}"]`);
     if (radio) radio.checked = true;
+    state.applyScope = data.applyScope || "cell";
+    const scopeRadio = document.querySelector(
+      `input[name="scope"][value="${state.applyScope}"]`,
+    );
+    if (scopeRadio) scopeRadio.checked = true;
   } catch (e) {
     console.warn("Failed to load saved state:", e);
   }
@@ -594,6 +609,7 @@ function updateDetailPanel() {
 function updateModeUi() {
   const mode = state.mode;
   els.modeLabel.textContent = mode === "cat" ? "cat" : mode === "text" ? "text" : "grid";
+  els.scopeRow.style.display = mode === "grid" ? "none" : "";
   if (mode === "grid") {
     els.setTemplate.disabled = true;
     els.clearTemplate.disabled = true;
@@ -654,6 +670,22 @@ function cursorForHandle(handle) {
     default:
       return null;
   }
+}
+
+function snapshotSiblings(row, col, kind, scope) {
+  if (scope !== "column" && scope !== "row") return null;
+  const sibs = [];
+  for (let r = 0; r < state.rows; r++) {
+    for (let c = 0; c < state.cols; c++) {
+      if (r === row && c === col) continue;
+      if (scope === "column" && c !== col) continue;
+      if (scope === "row" && r !== row) continue;
+      const k = cellKey(r, c);
+      const b = cellBbox(k, kind);
+      if (b) sibs.push({ key: k, start: b.slice() });
+    }
+  }
+  return sibs;
 }
 
 function applyHandleDrag(bbox, handle, dx, dy) {
@@ -774,6 +806,7 @@ canvas.addEventListener("mousedown", (e) => {
     volatile.bboxKind = kind;
     volatile.bboxHandle = handle;
     volatile.bboxStartCoords = cellBbox(hitKey, kind).slice();
+    volatile.bboxSiblingStarts = snapshotSiblings(r, c, kind, state.applyScope);
     volatile.dragStart = pt;
     e.preventDefault();
     return;
@@ -814,6 +847,12 @@ canvas.addEventListener("mousemove", (e) => {
       dy,
     );
     setCellBbox(volatile.bboxCellKey, volatile.bboxKind, newBbox);
+    if (volatile.bboxSiblingStarts) {
+      for (const sib of volatile.bboxSiblingStarts) {
+        const sibNew = applyHandleDrag(sib.start, volatile.bboxHandle, dx, dy);
+        setCellBbox(sib.key, volatile.bboxKind, sibNew);
+      }
+    }
     updateDetailPanel();
     draw();
     return;
@@ -916,6 +955,7 @@ canvas.addEventListener("mouseup", (e) => {
     volatile.bboxKind = null;
     volatile.bboxHandle = null;
     volatile.bboxStartCoords = null;
+    volatile.bboxSiblingStarts = null;
     volatile.dragStart = null;
     saveState();
     return;
@@ -981,6 +1021,13 @@ for (const radio of els.modeRadios) {
     updateModeUi();
     updateDetailPanel();
     draw();
+    saveState();
+  });
+}
+
+for (const radio of els.scopeRadios) {
+  radio.addEventListener("change", () => {
+    state.applyScope = radio.value;
     saveState();
   });
 }
@@ -1124,31 +1171,120 @@ els.exportBtn.addEventListener("click", async () => {
 });
 
 els.loadAnnotBtn.addEventListener("click", async () => {
-  let file;
-  if ("showOpenFilePicker" in window) {
-    try {
-      const [handle] = await window.showOpenFilePicker({
-        types: [{ description: "JSON", accept: { "application/json": [".json"] } }],
-      });
-      file = await handle.getFile();
-    } catch (err) {
-      if (err.name === "AbortError") return;
-      console.warn("showOpenFilePicker failed:", err);
-    }
+  // Try server-side picker first (lists local/*.annotations.json).
+  let entries = null;
+  try {
+    const r = await fetch("/api/annotations");
+    if (r.ok) entries = await r.json();
+  } catch (_) {
+    /* offline / standalone — fall through */
   }
-  if (!file) {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = ".json,application/json";
-    input.onchange = (e) => {
-      const f = e.target.files[0];
-      if (f) ingestAnnotationsFile(f);
-    };
-    input.click();
+  if (entries) {
+    openLoadDialog(entries);
     return;
   }
-  ingestAnnotationsFile(file);
+  pickAnnotationsFromDisk();
 });
+
+function pickAnnotationsFromDisk() {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = ".json,application/json";
+  input.onchange = (e) => {
+    const f = e.target.files[0];
+    if (f) ingestAnnotationsFile(f);
+  };
+  input.click();
+}
+
+function openLoadDialog(entries) {
+  els.loadList.innerHTML = "";
+  if (!entries.length) {
+    const li = document.createElement("li");
+    li.className = "empty";
+    li.textContent = "No annotations files in local/. Export some first.";
+    els.loadList.appendChild(li);
+  } else {
+    for (const e of entries) {
+      const li = document.createElement("li");
+      const main = document.createElement("div");
+      main.className = "row-main";
+      main.textContent = e.stem;
+      const meta = document.createElement("div");
+      meta.className = "row-meta";
+      const bits = [];
+      if (e.top_category && e.sub_category)
+        bits.push(`${e.top_category}/${e.sub_category}/set${e.set_number ?? "?"}`);
+      if (e.rows && e.cols) bits.push(`${e.rows}×${e.cols}`);
+      if (e.cells_total) bits.push(`${e.cells_total} cell entries`);
+      if (e.sheet_filename) {
+        const tag = e.sheet_exists ? e.sheet_filename : `${e.sheet_filename} (missing)`;
+        bits.push(tag);
+        if (!e.sheet_exists) meta.classList.add("missing");
+      }
+      meta.textContent = bits.join(" · ");
+      li.appendChild(main);
+      li.appendChild(meta);
+      li.addEventListener("click", () => loadFromServer(e));
+      els.loadList.appendChild(li);
+    }
+  }
+  els.loadDialog.showModal();
+}
+
+for (const el of document.querySelectorAll("[data-close]")) {
+  el.addEventListener("click", () => els.loadDialog.close());
+}
+els.loadFromDiskBtn.addEventListener("click", () => {
+  els.loadDialog.close();
+  pickAnnotationsFromDisk();
+});
+
+async function loadFromServer(entry) {
+  els.loadDialog.close();
+  try {
+    const data = await fetch(`/api/annotations/${entry.stem}`).then((r) => {
+      if (!r.ok) throw new Error(`fetch annotations: HTTP ${r.status}`);
+      return r.json();
+    });
+    applyAnnotationsJson(data);
+    setStatus(`Loaded ${data.cells?.length ?? 0} cell entries from ${entry.stem}.annotations.json`);
+
+    const sheet = data.sheet_filename;
+    if (sheet) {
+      if (!entry.sheet_exists) {
+        setStatus(`Loaded ${entry.stem} but sheet raw/${sheet} is missing.`);
+        return;
+      }
+      await loadSheetFromUrl(`/raw/${encodeURIComponent(sheet)}`, sheet);
+    }
+  } catch (err) {
+    setStatus(`Load failed: ${err.message}`);
+  }
+}
+
+function loadSheetFromUrl(url, filename) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      volatile.image = img;
+      state.sheetFilename = filename;
+      state.imageW = img.naturalWidth;
+      state.imageH = img.naturalHeight;
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      if (state.xLines.length !== state.cols + 1 || state.yLines.length !== state.rows + 1) {
+        resetGrid();
+      }
+      updateCellTotal();
+      draw();
+      saveState();
+      resolve();
+    };
+    img.onerror = () => reject(new Error(`failed to load image ${url}`));
+    img.src = url;
+  });
+}
 
 function ingestAnnotationsFile(file) {
   const reader = new FileReader();

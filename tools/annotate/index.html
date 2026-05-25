@@ -20,6 +20,18 @@
       </div>
     </header>
 
+    <dialog id="load-dialog" class="load-dialog">
+      <header>
+        <strong>Load from <code>local/</code></strong>
+        <button type="button" class="close" data-close>×</button>
+      </header>
+      <ul id="load-list" class="load-list"></ul>
+      <footer>
+        <button type="button" id="load-from-disk-btn">Pick file from disk…</button>
+        <button type="button" data-close>Cancel</button>
+      </footer>
+    </dialog>
+
     <main>
       <section class="controls">
         <div class="row">
@@ -63,6 +75,12 @@
           <span class="spacer"></span>
           <button id="set-template-btn" type="button">Set template…</button>
           <button id="clear-template-btn" type="button">Clear template</button>
+        </div>
+        <div class="row tools" id="scope-row">
+          <span class="label">Apply resize to:</span>
+          <label><input type="radio" name="scope" value="cell" checked /> this cell</label>
+          <label><input type="radio" name="scope" value="column" /> whole column</label>
+          <label><input type="radio" name="scope" value="row" /> whole row</label>
         </div>
         <div class="row">
           <span id="template-info" class="hint small"></span>

@@ -267,6 +267,50 @@ def apply_sheet(stem: str) -> JSONResponse:
     )
 
 
+@app.get("/api/annotations")
+def list_annotations() -> list[dict]:
+    out = []
+    for p in sorted(LOCAL.glob("*.annotations.json")):
+        stem = p.name.removesuffix(".annotations.json")
+        try:
+            d = json.loads(p.read_text(encoding="utf-8"))
+        except Exception as e:
+            out.append({"stem": stem, "error": str(e)})
+            continue
+        sheet = d.get("sheet_filename") or ""
+        sheet_exists = (RAW / sheet).exists() if sheet else False
+        out.append(
+            {
+                "stem": stem,
+                "top_category": d.get("top_category"),
+                "sub_category": d.get("sub_category"),
+                "set_number": d.get("set_number"),
+                "sheet_filename": sheet,
+                "sheet_exists": sheet_exists,
+                "cells_total": len(d.get("cells", [])),
+                "rows": (d.get("grid") or {}).get("rows"),
+                "cols": (d.get("grid") or {}).get("cols"),
+            }
+        )
+    return out
+
+
+@app.get("/api/annotations/{stem}")
+def get_annotations(stem: str) -> JSONResponse:
+    p = _annotations_path(stem)
+    return JSONResponse(json.loads(p.read_text(encoding="utf-8")))
+
+
+@app.get("/raw/{name}")
+def serve_raw(name: str) -> FileResponse:
+    if "/" in name or ".." in name:
+        raise HTTPException(400, "bad name")
+    p = RAW / name
+    if not p.exists():
+        raise HTTPException(404)
+    return FileResponse(p)
+
+
 @app.get("/cache/{sheet_stem}/{name}")
 def serve_cache(sheet_stem: str, name: str) -> FileResponse:
     if not re.fullmatch(r"cell-\d{3}\.png", name):

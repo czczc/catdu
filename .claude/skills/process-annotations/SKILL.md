@@ -67,35 +67,19 @@ Write a records file via the `Write` tool. Default path: same directory as the a
 
 Order doesn't matter; one entry per processable cell.
 
-### 4. Validate wiki URLs (HEAD with User-Agent)
-
-Wikipedia 403s requests without a User-Agent. Run:
+### 4. Validate wiki URLs (Wikipedia + category-specific fallbacks)
 
 ```bash
-uv run python -c "
-import json, sys, httpx
-path = '<RECORDS_PATH>'
-data = json.load(open(path))
-ua = {'User-Agent': 'meowphosis/0.1 (chao.zh@gmail.com)'}
-flagged = []
-with httpx.Client(timeout=10.0, follow_redirects=True, headers=ua) as h:
-    for cell in data['cells']:
-        url = cell.get('wiki_url')
-        if not url:
-            continue
-        try:
-            r = h.head(url)
-            if r.status_code != 200:
-                flagged.append((cell['cell_number'], cell['english_name'], r.status_code))
-                cell['wiki_url'] = None
-        except Exception as e:
-            flagged.append((cell['cell_number'], cell['english_name'], str(e)))
-            cell['wiki_url'] = None
-json.dump(data, open(path, 'w'), ensure_ascii=False, indent=2)
-for n, name, code in flagged:
-    print(f'cell {n:03d} {name}: {code} → wiki_url cleared')
-"
+uv run python scripts/validate_wiki_urls.py <ANNOTATIONS_PATH> <RECORDS_PATH>
 ```
+
+For each cell, HEAD-tries the candidate URLs in this order — keeping the first that returns 200, otherwise nulling the field:
+
+1. Category-specific wiki templates registered in `CATEGORY_WIKI_PATTERNS` in the script, keyed by `(top_category, sub_category)`. e.g. `game/league-of-legends` → `https://wiki.leagueoflegends.com/en-us/{name}`.
+2. `https://en.wikipedia.org/wiki/<EnglishName>` (spaces → underscores) as a fallback.
+3. The records' existing `wiki_url`, last — preserves manual overrides made via the review UI.
+
+When a category-specific pattern is defined, it becomes the *preferred* source — even Wikipedia URLs that resolved on a prior run get re-targeted to the franchise wiki on the next run. To add a new game/franchise, add a row to `CATEGORY_WIKI_PATTERNS` and re-run. The validation uses a User-Agent (Wikipedia 403s anonymous requests).
 
 ### 5. Finalize — normalize, upsert DB, regen shards
 
