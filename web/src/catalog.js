@@ -138,3 +138,29 @@ export const totalCats = computed(() => store.allCats.length);
 export const totalCategories = computed(
   () => (store.index?.categories || []).length,
 );
+
+/** Return cats from `pool` that match `query`. Match scope: english_name,
+ * chinese_name, iconography[], sub_display, and summary by word-prefix.
+ * Empty/blank query returns the pool unchanged. */
+export function searchCats(query, pool) {
+  const q = (query || "").trim().toLowerCase();
+  if (!q) return pool;
+  return pool.filter((cat) => matchCat(cat, q));
+}
+
+function matchCat(cat, q) {
+  if (cat.english_name?.toLowerCase().includes(q)) return true;
+  if (cat.chinese_name?.toLowerCase().includes(q)) return true;
+  if (cat.sub_display?.toLowerCase().includes(q)) return true;
+  if (cat.sub?.toLowerCase().includes(q)) return true;
+  if (
+    (cat.iconography || []).some((ic) => ic.toLowerCase().includes(q))
+  )
+    return true;
+  // Summary: word-prefix match (avoid "the" matching everything).
+  if (cat.summary) {
+    const words = cat.summary.toLowerCase().split(/[\s,.;:!?'"()]+/);
+    if (words.some((w) => w.startsWith(q))) return true;
+  }
+  return false;
+}

@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted } from "vue";
 import { store, loadAll } from "./catalog.js";
+import AppHeader from "./components/AppHeader.vue";
 
 onMounted(() => {
   loadAll();
@@ -22,5 +23,8 @@ onMounted(() => {
     <h1>Failed to load.</h1>
     <p>{{ store.error }}</p>
   </div>
-  <router-view v-else />
+  <template v-else>
+    <AppHeader />
+    <router-view />
+  </template>
 </template>

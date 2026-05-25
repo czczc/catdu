@@ -1,8 +1,9 @@
 <script setup>
 import { computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { store, findCat } from "../catalog.js";
+import { store, findCat, searchCats } from "../catalog.js";
 import Polaroid from "../components/Polaroid.vue";
+import DetailPane from "../components/DetailPane.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -33,11 +34,14 @@ const sortMode = computed(() => {
   return ["curated", "az", "za"].includes(q) ? q : "curated";
 });
 
+const query = computed(() => String(route.query.q || "").trim());
+
 const cats = computed(() => {
   const all = (store.catsByTop[top.value] || []).filter(
     (c) => !sub.value || c.sub === sub.value,
   );
-  const arr = [...all];
+  const filtered = searchCats(query.value, all);
+  const arr = [...filtered];
   if (sortMode.value === "az") {
     arr.sort((a, b) => a.english_name.localeCompare(b.english_name));
   } else if (sortMode.value === "za") {
@@ -158,14 +162,7 @@ const detailCat = computed(() => {
       </router-link>
     </div>
 
-    <div
-      v-if="detailCat"
-      class="meta-caps"
-      style="margin-top: 32px; text-align: center"
-    >
-      detail stub for "{{ detailCat.english_name }}" — pane lands in #12 ·
-      <router-link :to="`/${top}/${detailCat.sub}`">close</router-link>
-    </div>
+    <DetailPane v-if="detailCat" :cat="detailCat" />
   </main>
   <main class="notfound" v-else>
     <h1>Not found.</h1>
