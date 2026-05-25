@@ -1,15 +1,21 @@
 <script setup>
 import { ref, computed, watch } from "vue";
-import { loadShard, imageUrl } from "../catalog.js";
+import { loadCatalog, loadShard, imageUrl } from "../catalog.js";
 import { route, href } from "../router.js";
 
 const shard = ref(null);
+const catalog = ref(null);
 const activeSetIdx = ref(0);
 
 async function load() {
   shard.value = null;
   activeSetIdx.value = 0;
-  shard.value = await loadShard(route.value.top, route.value.sub);
+  const [c, s] = await Promise.all([
+    loadCatalog(),
+    loadShard(route.value.top, route.value.sub),
+  ]);
+  catalog.value = c;
+  shard.value = s;
 }
 
 watch(
@@ -17,6 +23,12 @@ watch(
   () => load(),
   { immediate: true },
 );
+
+const siblingSubs = computed(() => {
+  if (!catalog.value || !shard.value) return [];
+  const top = catalog.value.categories.find((t) => t.slug === shard.value.top.slug);
+  return top?.sub_categories || [];
+});
 
 const activeSet = computed(() => shard.value?.sets[activeSetIdx.value]);
 const sortedLogos = computed(() =>
@@ -46,6 +58,19 @@ const sortedLogos = computed(() =>
       {{ activeSet.style_description }}
     </p>
     <hr class="double-rule" />
+
+    <div class="set-tabs" v-if="siblingSubs.length > 1">
+      <a
+        v-for="sub in siblingSubs"
+        :key="sub.slug"
+        class="set-tab"
+        :class="{ active: sub.slug === shard.sub.slug }"
+        :href="href({ name: 'sub', top: shard.top.slug, sub: sub.slug })"
+      >
+        {{ sub.display }}
+        <span class="set-tab-count">{{ sub.logo_count }}</span>
+      </a>
+    </div>
 
     <div class="set-tabs" v-if="shard.sets.length > 1">
       <button

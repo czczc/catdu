@@ -290,6 +290,14 @@ h3 {
   color: var(--cream);
 }
 
+.set-tab-count {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 11px;
+  opacity: 0.65;
+  margin-left: 6px;
+}
+
 .set-style {
   font-family: var(--serif);
   font-style: italic;
