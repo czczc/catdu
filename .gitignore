@@ -45,6 +45,9 @@ spike-output/
 local/
 tools/.run/
 
+# Local deploy script — contains private server location
+scripts/deploy.sh
+
 # Build outputs / node
 web/node_modules/
 dist/

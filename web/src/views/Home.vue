@@ -129,5 +129,12 @@ const cards = computed(() =>
         </div>
       </router-link>
     </div>
+
+    <footer class="home-footer">
+      <p>
+        Avatars and writeups are AI-generated — take the details with a grain of salt.
+        <router-link to="/about">More</router-link>
+      </p>
+    </footer>
   </main>
 </template>

@@ -3,14 +3,15 @@ import vue from "@vitejs/plugin-vue";
 import { fileURLToPath, URL } from "node:url";
 import { copyFileSync } from "node:fs";
 
-// GitHub Pages serves the site at https://czczc.github.io/meowphosis/, so the
-// base path needs the repo name as a prefix. publicDir is the repo-root public/
-// folder so the extraction pipeline writes directly to what Vite ships.
+// Base path is set per deploy target via VITE_BASE. Defaults to /meowphosis/
+// (GitHub Pages at https://czczc.github.io/meowphosis/); deploy.sh overrides
+// it to /~chao/meowphosis/ for the BNL hosting. publicDir is the repo-root
+// public/ folder so the extraction pipeline writes directly to what Vite ships.
 
-// SPA fallback for history-mode routes on GitHub Pages: GH Pages serves
-// 404.html for any unknown URL, so we copy index.html → 404.html after
-// build. Direct hits to /mythology/greek/1/zeus then load the SPA, which
-// reads window.location and renders the route.
+// SPA fallback for history-mode routes: hosts that serve 404.html for any
+// unknown URL (GitHub Pages, plain Apache with FallbackResource off) will
+// pick up this copy of index.html. Direct hits to /mythology/greek/1/zeus
+// then load the SPA, which reads window.location and renders the route.
 function spa404Fallback() {
   return {
     name: "spa-404-fallback",
@@ -25,7 +26,7 @@ function spa404Fallback() {
 export default defineConfig({
   plugins: [vue(), spa404Fallback()],
   root: fileURLToPath(new URL(".", import.meta.url)),
-  base: "/meowphosis/",
+  base: process.env.VITE_BASE || "/meowphosis/",
   publicDir: fileURLToPath(new URL("../public", import.meta.url)),
   build: {
     outDir: fileURLToPath(new URL("../dist", import.meta.url)),
