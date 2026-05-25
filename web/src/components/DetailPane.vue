@@ -100,7 +100,11 @@ watch(
 <template>
   <teleport to="body">
     <transition name="pane-scrim">
-      <div class="pane-scrim" @click="closePane" />
+      <div
+        class="pane-scrim"
+        @click="closePane"
+        aria-hidden="true"
+      />
     </transition>
     <transition name="detail-pane">
       <aside

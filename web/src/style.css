@@ -1107,9 +1107,53 @@ body.detail-open {
   transform: rotate(45deg);
 }
 
-@media (max-width: 720px) {
+/* ---------- Responsive breakpoints ---------- */
+
+@media (max-width: 860px) {
+  .home-grid {
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+  .home-card {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .home-card-meta {
+    padding-right: 0;
+  }
+  .home-fan-wrap {
+    height: 180px;
+  }
+  .home-card-idx {
+    left: 0;
+    top: -16px;
+  }
+  .hdr-inner {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .hdr-search {
+    flex: 1 1 100%;
+  }
+}
+
+@media (max-width: 520px) {
   .detail-pane {
     padding: 20px 22px 40px;
+  }
+  .pane-hdr {
+    margin: -20px -22px 0;
+    padding: 16px 22px;
+  }
+  .pane-stats {
+    grid-template-columns: 1fr;
+    gap: 12px 0;
+  }
+  .pane-stats .stat + .stat {
+    border-left: 0;
+    padding-left: 0;
+    border-top: 1px solid var(--hair-soft);
+    padding-top: 12px;
   }
   .also-row {
     grid-template-columns: repeat(2, 1fr);
@@ -1121,6 +1165,45 @@ body.detail-open {
   .swatch-chip {
     width: 28px;
     height: 28px;
+  }
+  .headline-cat {
+    font-size: clamp(48px, 12vw, 72px);
+  }
+  .cat-masthead-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
+
+/* ---------- Focus rings (a11y) ---------- */
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+.brand:focus-visible,
+.hdr-search:focus-within {
+  outline-offset: 2px;
+}
+
+.pane-x:focus-visible,
+.hdr-search-x:focus-visible {
+  outline-offset: 2px;
+}
+
+/* ---------- Reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
