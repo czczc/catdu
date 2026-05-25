@@ -43,6 +43,7 @@ htmlcov/
 
 spike-output/
 local/
+tools/.run/
 
 # Build outputs / node
 web/node_modules/

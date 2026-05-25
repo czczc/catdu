@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>meowphosis · visibility</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <nav class="tools-nav">
+      <span class="tools-nav-brand">meowphosis</span>
+      <a href="/annotate/">annotate</a>
+      <a href="/review/">review</a>
+      <a href="/visibility/" class="active">visibility</a>
+    </nav>
+    <header>
+      <h1>meowphosis · visibility</h1>
+      <p class="hint">
+        Hidden categories stay in the database but don't appear in
+        <code>public/catalog.json</code> or shards. Toggling rebuilds the catalog
+        automatically.
+      </p>
+      <div id="status" class="status" hidden></div>
+    </header>
+
+    <main id="tree"></main>
+
+    <template id="top-template">
+      <section class="top">
+        <header class="top-head">
+          <label class="row">
+            <input type="checkbox" class="top-toggle" />
+            <span class="visible-label">Visible</span>
+          </label>
+          <span class="top-slug"></span>
+          <span class="top-display"></span>
+          <span class="top-count"></span>
+        </header>
+        <div class="subs"></div>
+      </section>
+    </template>
+
+    <template id="sub-template">
+      <label class="sub row">
+        <input type="checkbox" class="sub-toggle" />
+        <span class="visible-label">Visible</span>
+        <span class="sub-slug"></span>
+        <span class="sub-display"></span>
+        <span class="sub-count"></span>
+      </label>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>

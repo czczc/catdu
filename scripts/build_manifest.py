@@ -30,8 +30,10 @@ def build() -> None:
         SELECT
             tc.slug          AS top_slug,
             tc.display       AS top_display,
+            tc.hidden        AS top_hidden,
             sc.slug          AS sub_slug,
             sc.display       AS sub_display,
+            sc.hidden        AS sub_hidden,
             COUNT(l.id)      AS logo_count
         FROM top_category tc
         JOIN sub_category sc ON sc.top_slug = tc.slug
@@ -42,7 +44,16 @@ def build() -> None:
         """
     )
     by_top: dict[str, dict] = {}
+    hidden_subs: list[tuple[str, str]] = []
+    hidden_tops: set[str] = set()
     for row in cur.fetchall():
+        if row["top_hidden"]:
+            hidden_tops.add(row["top_slug"])
+            hidden_subs.append((row["top_slug"], row["sub_slug"]))
+            continue
+        if row["sub_hidden"]:
+            hidden_subs.append((row["top_slug"], row["sub_slug"]))
+            continue
         top_slug = row["top_slug"]
         if top_slug not in by_top:
             by_top[top_slug] = {
@@ -57,6 +68,16 @@ def build() -> None:
                 "logo_count": row["logo_count"],
             }
         )
+
+    for top, sub in hidden_subs:
+        stale = PUBLIC / "catalog" / top / f"{sub}.json"
+        if stale.exists():
+            stale.unlink()
+            print(f"Removed hidden shard public/catalog/{top}/{sub}.json")
+    for top in hidden_tops:
+        top_dir = PUBLIC / "catalog" / top
+        if top_dir.exists() and not any(top_dir.iterdir()):
+            top_dir.rmdir()
 
     catalog = {"categories": list(by_top.values())}
     (PUBLIC / "catalog.json").write_text(

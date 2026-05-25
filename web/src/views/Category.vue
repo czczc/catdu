@@ -30,8 +30,8 @@ const subEntries = computed(() => {
 });
 
 const sortMode = computed(() => {
-  const q = String(route.query.sort || "curated").toLowerCase();
-  return ["curated", "az", "za"].includes(q) ? q : "curated";
+  const q = String(route.query.sort || "az").toLowerCase();
+  return ["id", "az", "za", "confidence"].includes(q) ? q : "az";
 });
 
 const query = computed(() => String(route.query.q || "").trim());
@@ -46,8 +46,14 @@ const cats = computed(() => {
     arr.sort((a, b) => a.english_name.localeCompare(b.english_name));
   } else if (sortMode.value === "za") {
     arr.sort((a, b) => b.english_name.localeCompare(a.english_name));
+  } else if (sortMode.value === "confidence") {
+    arr.sort(
+      (a, b) =>
+        (a.confidence ?? 1) - (b.confidence ?? 1) ||
+        a.english_name.localeCompare(b.english_name),
+    );
   } else {
-    // Curated = sheet order. Within mixed subs, also key on sub to keep
+    // ID = sheet order. Within mixed subs, also key on sub to keep
     // related cats together.
     arr.sort(
       (a, b) =>
@@ -73,7 +79,7 @@ function setSub(nextSlug) {
 function setSort(e) {
   const next = e.target.value;
   const query = { ...route.query };
-  if (next === "curated") delete query.sort;
+  if (next === "az") delete query.sort;
   else query.sort = next;
   router.replace({ ...route, query });
 }
@@ -131,9 +137,10 @@ const detailCat = computed(() => {
       <label class="sort">
         <span class="sort-label">Sort</span>
         <select :value="sortMode" @change="setSort">
-          <option value="curated">Curated</option>
           <option value="az">A–Z</option>
           <option value="za">Z–A</option>
+          <option value="confidence">Confidence</option>
+          <option value="id">ID</option>
         </select>
       </label>
     </div>

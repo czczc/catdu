@@ -16,7 +16,8 @@ DB_PATH = ROOT / "data" / "meowphosis.db"
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS top_category (
     slug TEXT PRIMARY KEY,
-    display TEXT NOT NULL
+    display TEXT NOT NULL,
+    hidden INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS sub_category (
@@ -24,6 +25,7 @@ CREATE TABLE IF NOT EXISTS sub_category (
     top_slug TEXT NOT NULL REFERENCES top_category(slug),
     slug TEXT NOT NULL,
     display TEXT NOT NULL,
+    hidden INTEGER NOT NULL DEFAULT 0,
     UNIQUE (top_slug, slug)
 );
 
@@ -68,6 +70,13 @@ def init() -> None:
     conn.executescript(SCHEMA)
 
     cur = conn.cursor()
+
+    for table in ("top_category", "sub_category"):
+        cols = {row[1] for row in cur.execute(f"PRAGMA table_info({table})").fetchall()}
+        if "hidden" not in cols:
+            cur.execute(
+                f"ALTER TABLE {table} ADD COLUMN hidden INTEGER NOT NULL DEFAULT 0"
+            )
 
     cur.execute(
         "INSERT OR IGNORE INTO top_category (slug, display) VALUES (?, ?)",

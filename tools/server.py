@@ -371,6 +371,108 @@ def save_annotations(payload: dict) -> dict:
     }
 
 
+@app.get("/api/visibility")
+def list_visibility() -> dict:
+    if not DB_PATH.exists():
+        raise HTTPException(404, "db not initialized")
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    cur.execute(
+        """
+        SELECT tc.slug AS top_slug, tc.display AS top_display, tc.hidden AS top_hidden,
+               sc.slug AS sub_slug, sc.display AS sub_display, sc.hidden AS sub_hidden,
+               COUNT(l.id) AS logo_count
+          FROM top_category tc
+          LEFT JOIN sub_category sc ON sc.top_slug = tc.slug
+          LEFT JOIN logo_set ls ON ls.sub_category_id = sc.id
+          LEFT JOIN logo l ON l.set_id = ls.id
+         GROUP BY tc.slug, sc.slug
+         ORDER BY tc.slug, sc.slug
+        """
+    )
+    tops: dict[str, dict] = {}
+    for row in cur.fetchall():
+        slug = row["top_slug"]
+        if slug not in tops:
+            tops[slug] = {
+                "slug": slug,
+                "display": row["top_display"],
+                "hidden": bool(row["top_hidden"]),
+                "sub_categories": [],
+            }
+        if row["sub_slug"] is not None:
+            tops[slug]["sub_categories"].append(
+                {
+                    "slug": row["sub_slug"],
+                    "display": row["sub_display"],
+                    "hidden": bool(row["sub_hidden"]),
+                    "logo_count": row["logo_count"],
+                }
+            )
+    conn.close()
+    return {"categories": list(tops.values())}
+
+
+class VisibilityToggle(BaseModel):
+    scope: str  # "top" or "sub"
+    top: str
+    sub: str | None = None
+    hidden: bool
+
+
+@app.post("/api/visibility/toggle")
+def toggle_visibility(payload: VisibilityToggle) -> JSONResponse:
+    if not DB_PATH.exists():
+        raise HTTPException(404, "db not initialized")
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    hidden = 1 if payload.hidden else 0
+    if payload.scope == "top":
+        cur.execute("SELECT slug FROM top_category WHERE slug = ?", (payload.top,))
+        if not cur.fetchone():
+            conn.close()
+            raise HTTPException(404, f"no top category: {payload.top}")
+        cur.execute(
+            "UPDATE top_category SET hidden = ? WHERE slug = ?", (hidden, payload.top)
+        )
+    elif payload.scope == "sub":
+        if not payload.sub:
+            conn.close()
+            raise HTTPException(400, "sub required when scope=sub")
+        cur.execute(
+            "SELECT id FROM sub_category WHERE top_slug = ? AND slug = ?",
+            (payload.top, payload.sub),
+        )
+        if not cur.fetchone():
+            conn.close()
+            raise HTTPException(404, f"no sub: {payload.top}/{payload.sub}")
+        cur.execute(
+            "UPDATE sub_category SET hidden = ? WHERE top_slug = ? AND slug = ?",
+            (hidden, payload.top, payload.sub),
+        )
+    else:
+        conn.close()
+        raise HTTPException(400, f"bad scope: {payload.scope}")
+    conn.commit()
+    conn.close()
+
+    result = subprocess.run(
+        ["uv", "run", "python", "scripts/build_manifest.py"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+    return JSONResponse(
+        {
+            "ok": result.returncode == 0,
+            "returncode": result.returncode,
+            "stdout": result.stdout,
+            "stderr": result.stderr,
+        }
+    )
+
+
 @app.get("/raw/{name}")
 def serve_raw(name: str) -> FileResponse:
     if "/" in name or ".." in name:
@@ -409,6 +511,11 @@ app.mount(
 )
 app.mount(
     "/review", StaticFiles(directory=str(TOOLS / "review"), html=True), name="review"
+)
+app.mount(
+    "/visibility",
+    StaticFiles(directory=str(TOOLS / "visibility"), html=True),
+    name="visibility",
 )
 
 
