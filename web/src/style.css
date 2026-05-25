@@ -119,8 +119,8 @@ button {
 
 .brand {
   display: inline-flex;
-  align-items: baseline;
-  gap: 10px;
+  align-items: center;
+  gap: 8px;
   cursor: pointer;
   color: var(--ink);
   flex-shrink: 0;
