@@ -134,7 +134,7 @@ watch(
 
         <div class="pane-hero">
           <div class="pane-polaroid">
-            <Polaroid :cat="cat" :size="300" :rotate="-2" />
+            <Polaroid :cat="cat" :size="150" />
           </div>
         </div>
 
@@ -142,7 +142,18 @@ watch(
           <h1 class="pane-name" :id="`pane-name-${cat.english_slug}`">
             {{ cat.english_name }}
           </h1>
+          <p v-if="cat.chinese_name" class="pane-chinese">{{ cat.chinese_name }}</p>
           <p v-if="cat.summary" class="pane-tagline">{{ cat.summary }}</p>
+          <a
+            v-if="cat.wiki_url"
+            class="pane-wiki"
+            :href="cat.wiki_url"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Read on {{ cat.wiki_url.includes("wikipedia.org") ? "Wikipedia" : "the wiki" }}
+            <span aria-hidden="true">↗</span>
+          </a>
         </section>
 
         <div class="pane-stats">
@@ -209,10 +220,6 @@ watch(
           </div>
         </section>
 
-        <footer class="pane-foot">
-          <span>end of file</span>
-          <span class="pane-foot-diamond" aria-hidden="true" />
-        </footer>
       </aside>
     </transition>
   </teleport>

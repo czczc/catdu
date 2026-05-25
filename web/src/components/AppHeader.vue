@@ -46,46 +46,19 @@ const subMeta = computed(() => {
   return topMeta.value.sub_categories.find((s) => s.slug === route.params.sub);
 });
 
-const showCrumb = computed(() => route.name !== "home");
 </script>
 
 <template>
   <header class="hdr">
     <div class="hdr-inner">
       <router-link to="/" class="brand" aria-label="Home">
-        <span class="brand-mark">meowphosis</span>
-        <span class="brand-diamond" aria-hidden="true" />
-        <span class="brand-tag">a catalog of cat logos</span>
+        <span class="brand-mark">Meowphosis</span>
       </router-link>
-      <div class="hdr-search" role="search">
-        <span class="hdr-search-icon" aria-hidden="true">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.4" />
-            <path d="m11 11 3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
-          </svg>
-        </span>
-        <input
-          type="search"
-          v-model="local"
-          placeholder="Search name, sub, iconography…"
-          aria-label="Search the catalog"
-        />
-        <button
-          v-if="local"
-          type="button"
-          class="hdr-search-x"
-          @click="clearSearch"
-          aria-label="Clear search"
-        >
-          ×
-        </button>
-      </div>
-    </div>
-    <nav v-if="showCrumb" class="crumb-rail" aria-label="Breadcrumb">
-      <div class="crumb">
-        <router-link to="/">HOME</router-link>
-        <span class="crumb-sep">/</span>
+      <nav class="crumb" aria-label="Breadcrumb">
+        <router-link v-if="route.name !== 'home'" to="/">HOME</router-link>
+        <span v-else class="crumb-current">HOME</span>
         <template v-if="topMeta">
+          <span class="crumb-sep">/</span>
           <router-link
             v-if="subMeta || route.name === 'detail'"
             :to="`/${topMeta.slug}`"
@@ -112,7 +85,30 @@ const showCrumb = computed(() => route.name !== "home");
             String(route.params.slug).toUpperCase()
           }}</span>
         </template>
+      </nav>
+      <div class="hdr-search" role="search">
+        <span class="hdr-search-icon" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.4" />
+            <path d="m11 11 3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+          </svg>
+        </span>
+        <input
+          type="search"
+          v-model="local"
+          placeholder="Search name, sub, iconography…"
+          aria-label="Search the catalog"
+        />
+        <button
+          v-if="local"
+          type="button"
+          class="hdr-search-x"
+          @click="clearSearch"
+          aria-label="Clear search"
+        >
+          ×
+        </button>
       </div>
-    </nav>
+    </div>
   </header>
 </template>

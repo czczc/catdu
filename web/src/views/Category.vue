@@ -149,11 +149,13 @@ const detailCat = computed(() => {
         :to="`/${cat.top}/${cat.sub}/${cat.set_number}/${cat.english_slug}`"
         class="thumb"
       >
-        <Polaroid :cat="cat" :size="170" />
+        <Polaroid :cat="cat" :size="150" />
         <div class="thumb-meta">
           <h3 class="thumb-name">{{ cat.english_name }}</h3>
           <div class="thumb-line">
-            <span>{{ cat.sub_display }}</span>
+            <span class="thumb-chinese">{{
+              cat.chinese_name || cat.sub_display
+            }}</span>
             <span class="thumb-id">
               #{{ String(cat.source_cell ?? 0).padStart(3, "0") }}
             </span>

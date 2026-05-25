@@ -1,8 +1,10 @@
 <script setup>
 import { computed } from "vue";
 import { useRoute } from "vue-router";
-import { store, totalCats, totalCategories, coversFor, searchCats } from "../catalog.js";
+import { store, totalCats, totalCategories, coversFor, searchCats, imageUrl } from "../catalog.js";
 import Polaroid from "../components/Polaroid.vue";
+
+const COVER_TILTS = ["-6deg", "3deg", "-2deg", "5deg"];
 
 const route = useRoute();
 const query = computed(() => String(route.query.q || "").trim());
@@ -44,12 +46,12 @@ const cards = computed(() =>
   <main class="shell">
     <section class="masthead">
       <div class="masthead-row">
-        <h1 class="headline headline-home">The cat catalog</h1>
+        <h1 class="headline headline-home">Cats as Everything</h1>
         <span class="meta-caps">HOME / INDEX</span>
       </div>
       <p class="lede">
-        AI-generated cats, organized by mythology, geography, and the rest.
-        Pick a theme, or rifle through the whole index.
+        A growing gallery of cute cat avatars reimagined as gods, game heroes,
+        and subatomic particles. Browse by theme.
       </p>
       <div class="masthead-meta meta-caps">
         <span>{{ totalCats }} cats</span>
@@ -76,11 +78,13 @@ const cards = computed(() =>
           :to="`/${cat.top}/${cat.sub}/${cat.set_number}/${cat.english_slug}`"
           class="thumb"
         >
-          <Polaroid :cat="cat" :size="170" />
+          <Polaroid :cat="cat" :size="150" />
           <div class="thumb-meta">
             <h3 class="thumb-name">{{ cat.english_name }}</h3>
             <div class="thumb-line">
-              <span>{{ cat.top_display }} · {{ cat.sub_display }}</span>
+              <span class="thumb-chinese">
+                {{ cat.chinese_name || `${cat.top_display} · ${cat.sub_display}` }}
+              </span>
             </div>
           </div>
         </router-link>
@@ -96,17 +100,17 @@ const cards = computed(() =>
       >
         <span class="home-card-idx">{{ String(i + 1).padStart(2, "0") }}</span>
 
-        <div class="home-fan-wrap">
-          <div class="home-fan">
-            <div
-              v-for="(cat, j) in card.covers"
-              :key="cat.english_slug + j"
-              class="home-fan-slot"
-              :data-pos="j"
-            >
-              <Polaroid :cat="cat" :size="76" />
-            </div>
-          </div>
+        <div class="home-stack">
+          <img
+            v-for="(cat, j) in card.covers"
+            :key="cat.english_slug + j"
+            :src="imageUrl(cat.image_path)"
+            :alt="cat.english_name"
+            class="home-stack-cover"
+            :style="{ '--tilt': COVER_TILTS[j] || '0deg' }"
+            width="88"
+            height="88"
+          />
         </div>
 
         <div class="home-card-meta">

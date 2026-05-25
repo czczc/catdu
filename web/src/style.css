@@ -12,9 +12,16 @@
   --accent: #c25a2a;
   --accent-soft: #e09267;
 
-  --serif: "Instrument Serif", "EB Garamond", Georgia, serif;
-  --sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+  /* CJK fallback chain — heiti (sans-serif Chinese) by default.
+     PingFang on macOS/iOS, YaHei on Windows, Noto Sans on Linux/Android.
+     No web-font download needed. */
+  --cjk: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+    "Source Han Sans SC", "Noto Sans CJK SC", "Noto Sans SC",
+    "Heiti SC", "SimHei";
+  --serif: "Source Serif 4", "Source Serif Pro", Georgia, var(--cjk), serif;
+  --sans: "Instrument Sans", ui-sans-serif, system-ui, var(--cjk), sans-serif;
   --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --display: "Comfortaa", "Source Serif 4", Georgia, var(--cjk), serif;
 
   --page-max: 1320px;
   --page-pad: clamp(20px, 4vw, 56px);
@@ -104,9 +111,10 @@ button {
   margin: 0 auto;
   padding: 18px var(--page-pad);
   display: flex;
+  flex-wrap: nowrap;
   align-items: center;
-  justify-content: space-between;
   gap: 24px;
+  min-height: 28px;
 }
 
 .brand {
@@ -115,12 +123,13 @@ button {
   gap: 10px;
   cursor: pointer;
   color: var(--ink);
+  flex-shrink: 0;
 }
 
 .brand-mark {
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: 28px;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 24px;
   letter-spacing: -0.01em;
   line-height: 1;
   transition: color 0.2s;
@@ -130,28 +139,6 @@ button {
   color: var(--accent);
 }
 
-.brand-diamond {
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  background: var(--accent);
-  transform: rotate(45deg);
-  flex-shrink: 0;
-}
-
-.brand-tag {
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: 14px;
-  color: var(--ink-soft);
-  white-space: nowrap;
-}
-
-@media (max-width: 720px) {
-  .brand-tag {
-    display: none;
-  }
-}
 
 .hdr-search {
   position: relative;
@@ -195,7 +182,6 @@ button {
 
 .hdr-search input::placeholder {
   color: var(--ink-mute);
-  font-style: italic;
   font-family: var(--serif);
   font-size: 16px;
 }
@@ -219,15 +205,10 @@ button {
   background: rgba(0, 0, 0, 0.04);
 }
 
-/* Breadcrumb rail (below header on non-home views) */
-.crumb-rail {
-  max-width: var(--page-max);
-  margin: 0 auto;
-  padding: 0 var(--page-pad) 14px;
-  border-bottom: 1px solid var(--hair-soft);
-}
-
+/* Breadcrumb sits inline with the brand + search */
 .crumb {
+  flex: 1 1 auto;
+  min-width: 0;
   font-family: var(--mono);
   font-size: 10.5px;
   letter-spacing: 0.14em;
@@ -236,6 +217,9 @@ button {
   display: flex;
   align-items: center;
   gap: 10px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .crumb a {
@@ -334,10 +318,10 @@ button {
 /* ---------- Shared headline + lede ---------- */
 
 .headline {
-  font-family: var(--serif);
-  font-style: italic;
-  line-height: 0.95;
-  letter-spacing: -0.01em;
+  font-family: var(--display);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
   margin: 0;
 }
 
@@ -359,7 +343,6 @@ button {
 
 .lede {
   font-family: var(--serif);
-  font-style: italic;
   font-size: clamp(17px, 1.5vw, 21px);
   line-height: 1.5;
   color: var(--ink-soft);
@@ -395,7 +378,6 @@ button {
 .count-accent {
   color: var(--accent);
   font-family: var(--serif);
-  font-style: italic;
   font-size: 18px;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -410,7 +392,9 @@ button {
 /* ---------- Polaroid ---------- */
 
 .polaroid {
-  background: var(--card);
+  /* Match the logo PNG's cream background so the frame doesn't ring the
+     image with a noticeably different color. */
+  background: #fefcf7;
   padding: 6px 6px 18px 6px;
   border-radius: 2px;
   box-shadow:
@@ -422,7 +406,7 @@ button {
 .polaroid-window {
   overflow: hidden;
   border-radius: 1px;
-  background: var(--paper);
+  background: #fefcf7;
 }
 
 .polaroid-window img {
@@ -436,16 +420,21 @@ button {
 .home-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: clamp(28px, 4vw, 64px) clamp(40px, 5vw, 80px);
+  gap: clamp(32px, 4vw, 56px);
   margin-top: 16px;
+}
+
+@media (min-width: 1100px) {
+  .home-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 .home-card {
   position: relative;
-  display: grid;
-  grid-template-columns: minmax(280px, 1fr) 1.1fr;
-  gap: 24px;
-  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
   padding: 16px 0;
   cursor: pointer;
   outline: 0;
@@ -457,72 +446,38 @@ button {
 }
 
 .home-card-idx {
-  position: absolute;
-  top: 0;
-  left: -20px;
   font-family: var(--mono);
   font-size: 11px;
   color: var(--ink-mute);
   letter-spacing: 0.12em;
 }
 
-.home-fan-wrap {
-  position: relative;
-  height: 200px;
+.home-stack {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-end;
+  gap: 0;
+  height: 110px;
 }
 
-.home-fan {
-  position: relative;
-  width: 100%;
-  height: 100%;
+.home-stack-cover {
+  width: 88px;
+  height: 88px;
+  background: #fefcf7;
+  border: 1px solid var(--hair);
+  border-radius: 2px;
+  margin-left: -14px;
+  transform: rotate(var(--tilt, 0deg));
+  transition: transform 0.25s ease;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04), 0 4px 10px rgba(31, 28, 20, 0.08);
 }
 
-.home-fan-slot {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  margin-left: -44px;
-  margin-top: -54px;
-  transform-origin: center;
-  will-change: transform;
-  transition: transform 0.55s cubic-bezier(0.2, 0.7, 0.2, 1);
+.home-stack-cover:first-child {
+  margin-left: 0;
 }
 
-/* At-rest positions */
-.home-fan-slot[data-pos="0"] {
-  transform: translateX(-78px) translateY(4px) rotate(-13deg);
-}
-.home-fan-slot[data-pos="1"] {
-  transform: translateX(-26px) translateY(-3px) rotate(-5deg);
-  z-index: 2;
-}
-.home-fan-slot[data-pos="2"] {
-  transform: translateX(26px) translateY(-3px) rotate(5deg);
-  z-index: 2;
-}
-.home-fan-slot[data-pos="3"] {
-  transform: translateX(78px) translateY(4px) rotate(14deg);
-}
-
-/* Spread on hover */
-.home-card:hover .home-fan-slot[data-pos="0"],
-.home-card:focus-visible .home-fan-slot[data-pos="0"] {
-  transform: translateX(-130px) translateY(4px) rotate(-18deg);
-}
-.home-card:hover .home-fan-slot[data-pos="1"],
-.home-card:focus-visible .home-fan-slot[data-pos="1"] {
-  transform: translateX(-42px) translateY(-10px) rotate(-7deg);
-}
-.home-card:hover .home-fan-slot[data-pos="2"],
-.home-card:focus-visible .home-fan-slot[data-pos="2"] {
-  transform: translateX(42px) translateY(-10px) rotate(7deg);
-}
-.home-card:hover .home-fan-slot[data-pos="3"],
-.home-card:focus-visible .home-fan-slot[data-pos="3"] {
-  transform: translateX(130px) translateY(4px) rotate(18deg);
+.home-card:hover .home-stack-cover,
+.home-card:focus-visible .home-stack-cover {
+  transform: rotate(0deg) translateY(-4px);
 }
 
 .home-card-meta {
@@ -533,10 +488,10 @@ button {
 }
 
 .home-card-name {
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: clamp(28px, 3vw, 40px);
-  line-height: 1;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(24px, 2.6vw, 32px);
+  line-height: 1.1;
   letter-spacing: -0.01em;
   margin: 0;
   transition: color 0.2s;
@@ -555,7 +510,6 @@ button {
 
 .home-card-desc {
   font-family: var(--serif);
-  font-style: italic;
   font-size: 15px;
   color: var(--ink-soft);
   line-height: 1.55;
@@ -584,14 +538,9 @@ button {
   transform: translateX(4px);
 }
 
-@media (max-width: 980px) {
+@media (max-width: 720px) {
   .home-grid {
     grid-template-columns: 1fr;
-    gap: 48px;
-  }
-  .home-card-idx {
-    left: 0;
-    top: -16px;
   }
 }
 
@@ -733,35 +682,51 @@ button {
 }
 
 .thumb-meta {
-  width: 100%;
-  padding: 0 4px;
+  /* Match the polaroid frame's outer width (size 150 + 6+6 padding = 162px)
+     so the meta text never spills wider than the image above it. */
+  width: 162px;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   gap: 3px;
-  align-self: flex-start;
 }
 
 .thumb-name {
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: 22px;
-  line-height: 1.15;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.2;
   margin: 0;
   transition: color 0.2s;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .thumb-line {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
+  gap: 8px;
   font-size: 12px;
   color: var(--ink-soft);
+}
+
+.thumb-chinese {
+  font-family: var(--serif);
+  font-size: 13px;
+  color: var(--ink-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  letter-spacing: 0.02em;
 }
 
 .thumb-id {
   font-family: var(--mono);
   color: var(--ink-mute);
   font-size: 10px;
+  flex-shrink: 0;
 }
 
 /* Empty state */
@@ -775,9 +740,9 @@ button {
 }
 
 .empty-title {
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: 48px;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 40px;
   margin: 0;
 }
 
@@ -918,22 +883,48 @@ body.detail-open {
 }
 
 .pane-name {
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: clamp(48px, 7vw, 72px);
-  line-height: 0.98;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(36px, 6vw, 56px);
+  line-height: 1.05;
   letter-spacing: -0.01em;
   margin: 0;
 }
 
 .pane-tagline {
   font-family: var(--serif);
-  font-style: italic;
   color: var(--ink-soft);
   font-size: 17px;
   line-height: 1.5;
   margin: 0;
   max-width: 48ch;
+}
+
+.pane-chinese {
+  font-family: var(--serif);
+  font-size: 20px;
+  color: var(--ink-soft);
+  margin: 0;
+  letter-spacing: 0.02em;
+}
+
+.pane-wiki {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent);
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 1px;
+  align-self: flex-start;
+  margin-top: 4px;
+  transition: opacity 0.18s;
+}
+
+.pane-wiki:hover {
+  opacity: 0.75;
 }
 
 .pane-stats {
@@ -966,7 +957,6 @@ body.detail-open {
 
 .stat-v {
   font-family: var(--serif);
-  font-style: italic;
   font-size: 16px;
   color: var(--ink);
 }
@@ -1077,63 +1067,33 @@ body.detail-open {
 }
 
 .also-name {
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: 14px;
-  line-height: 1.2;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1.25;
   margin: 0;
   text-align: center;
   transition: color 0.2s;
 }
 
-.pane-foot {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding-top: 20px;
-  font-family: var(--mono);
-  font-size: 10.5px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-mute);
-}
-
-.pane-foot-diamond {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  background: var(--accent);
-  transform: rotate(45deg);
-}
-
 /* ---------- Responsive breakpoints ---------- */
 
 @media (max-width: 860px) {
-  .home-grid {
-    grid-template-columns: 1fr;
-    gap: 48px;
-  }
-  .home-card {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-  .home-card-meta {
-    padding-right: 0;
-  }
-  .home-fan-wrap {
-    height: 180px;
-  }
-  .home-card-idx {
-    left: 0;
-    top: -16px;
-  }
   .hdr-inner {
-    flex-wrap: wrap;
     gap: 12px;
   }
   .hdr-search {
-    flex: 1 1 100%;
+    flex: 0 1 240px;
+  }
+  .crumb {
+    font-size: 9.5px;
+    letter-spacing: 0.12em;
+  }
+}
+
+@media (max-width: 560px) {
+  .crumb {
+    display: none;
   }
 }
 
@@ -1218,10 +1178,10 @@ body.detail-open {
 }
 
 .notfound h1 {
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: clamp(56px, 8vw, 96px);
-  line-height: 0.95;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(44px, 7vw, 80px);
+  line-height: 1.05;
   margin: 0;
 }
 
@@ -1236,7 +1196,6 @@ body.detail-open {
 
 .notfound a {
   font-family: var(--serif);
-  font-style: italic;
   font-size: 17px;
   color: var(--accent);
   margin-top: 8px;
