@@ -275,13 +275,14 @@ def main() -> None:
             """
             INSERT INTO logo
                 (set_id, english_name, english_slug, chinese_name, wiki_url,
-                 iconography, image_path, source_sheet, source_cell, confidence)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 iconography, summary, image_path, source_sheet, source_cell, confidence)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT (set_id, english_slug) DO UPDATE SET
                 english_name = excluded.english_name,
                 chinese_name = excluded.chinese_name,
                 wiki_url = excluded.wiki_url,
                 iconography = excluded.iconography,
+                summary = excluded.summary,
                 image_path = excluded.image_path,
                 source_sheet = excluded.source_sheet,
                 source_cell = excluded.source_cell,
@@ -295,6 +296,7 @@ def main() -> None:
                 rec.get("chinese_name"),
                 rec.get("wiki_url"),
                 json.dumps(rec.get("iconography", []), ensure_ascii=False),
+                rec.get("summary"),
                 image_rel,
                 annotations["sheet_filename"],
                 n,

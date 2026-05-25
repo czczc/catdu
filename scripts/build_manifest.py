@@ -74,7 +74,7 @@ def build() -> None:
                     ls.display            AS set_display,
                     ls.style_description  AS style_description,
                     l.english_name, l.english_slug, l.chinese_name, l.wiki_url,
-                    l.iconography, l.image_path, l.confidence
+                    l.iconography, l.summary, l.image_path, l.confidence
                 FROM logo l
                 JOIN logo_set ls    ON l.set_id = ls.id
                 JOIN sub_category sc ON ls.sub_category_id = sc.id
@@ -102,6 +102,7 @@ def build() -> None:
                         "chinese_name": r["chinese_name"],
                         "wiki_url": r["wiki_url"],
                         "iconography": json.loads(r["iconography"]) if r["iconography"] else [],
+                        "summary": r["summary"],
                         "image_path": r["image_path"],
                         "confidence": r["confidence"],
                     }

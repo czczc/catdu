@@ -67,6 +67,7 @@ const acrossSets = computed(() => {
           {{ shard.top.display }} · {{ shard.sub.display }} · Set
           {{ activeSet.set_number }} · {{ activeSet.display }}
         </p>
+        <p v-if="logo.summary" class="summary">{{ logo.summary }}</p>
         <a
           v-if="logo.wiki_url"
           class="wiki"

@@ -9,8 +9,10 @@ Process a sheet of annotated cells into the meowphosis catalog. The user has dra
 
 ## Argument
 
-Path to the annotations.json file (absolute or repo-relative). Example:
-`local/myth-greek.annotations.json` or `/Users/.../Downloads/myth-greek.annotations.json`.
+Path to the annotations.json file (absolute or repo-relative). Annotations are bucketed by top category — sheets exported from the annotate tool land under `local/<top_category>/<stem>.annotations.json`. Example:
+`local/mythology/myth-greek-1.annotations.json` or `/Users/.../Downloads/myth-greek.annotations.json`.
+
+Sheets exported without `top_category` set fall into `local/_uncategorized/` — fix the top/sub category in the annotate tool and re-export to file them properly.
 
 ## Process
 
@@ -41,13 +43,14 @@ Per cell, extract:
 | `english_slug` | string | ASCII-slugged English name, lowercase, kebab-case: `zeus`, `loki`, `freyja`. |
 | `wiki_url` | string \| null | `https://en.wikipedia.org/wiki/<EnglishName>` if confidently resolvable. Null otherwise — do not invent. |
 | `iconography` | string[] | 1–4 short visual cues you can SEE on the cat that link to this character. e.g. Zeus → `["lightning bolt", "scepter"]`, Loki → `["black coat", "snake"]`. Avoid generic terms ("crown") if every cat has one. |
+| `summary` | string | 1–2 short sentences (≈25–45 words) describing what/who this is, with enough context to relate back to the iconography on the cat. e.g. Ares → "Ares is the Greek god of war and courage, often depicted in armor with a spear and helmet — the cat wears a crested Greek helmet and carries a spear." Skip "the cat wears…" framing when the connection is obvious. |
 | `confidence` | number, 0..1 | Drop below 0.7 if the label is illegible, iconography doesn't match the named character, or there's any other reason to flag for human review. |
 
 **Batch the reads** — call `Read` on multiple composite paths in parallel within a single turn. Reading 6–12 cells per turn keeps the workflow responsive.
 
 ### 3. Compose records.json
 
-Write a records file via the `Write` tool. Default path: same directory as the annotations file, named `<annotations-stem>.records.json`. Shape:
+Write a records file via the `Write` tool. Default path: **same directory as the annotations file**, named `<annotations-stem>.records.json` (so a bucketed annotations file at `local/<top>/<stem>.annotations.json` gets a sibling `local/<top>/<stem>.records.json`). Shape:
 
 ```json
 {
@@ -59,6 +62,7 @@ Write a records file via the `Write` tool. Default path: same directory as the a
       "english_slug": "zeus",
       "wiki_url": "https://en.wikipedia.org/wiki/Zeus",
       "iconography": ["lightning bolt", "scepter"],
+      "summary": "Zeus is the king of the Greek gods, ruler of the sky and thunder, wielding the lightning bolt and seated on Olympus.",
       "confidence": 0.98
     }
   ]

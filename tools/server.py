@@ -35,18 +35,36 @@ DB_PATH = ROOT / "data" / "meowphosis.db"
 app = FastAPI(title="meowphosis tools")
 
 
+_SKIP_DIRS = {".annotation-cache", "_scratch"}
+
+
+def _iter_local(pattern: str):
+    """Yield files matching `pattern` anywhere under local/, skipping cache
+    and scratch dirs. Tolerates both flat (local/<stem>.x.json) and bucketed
+    (local/<top>/<stem>.x.json) layouts during the transition."""
+    for p in LOCAL.rglob(pattern):
+        if _SKIP_DIRS.intersection(p.relative_to(LOCAL).parts):
+            continue
+        yield p
+
+
+def _find_local(stem: str, suffix: str) -> Path:
+    matches = list(_iter_local(f"{stem}{suffix}"))
+    if not matches:
+        raise HTTPException(404, f"{suffix} not found: {stem}")
+    if len(matches) > 1:
+        raise HTTPException(
+            409, f"ambiguous stem {stem!r}: {[str(m.relative_to(LOCAL)) for m in matches]}"
+        )
+    return matches[0]
+
+
 def _records_path(stem: str) -> Path:
-    p = LOCAL / f"{stem}.records.json"
-    if not p.exists():
-        raise HTTPException(404, f"records not found: {stem}")
-    return p
+    return _find_local(stem, ".records.json")
 
 
 def _annotations_path(stem: str) -> Path:
-    p = LOCAL / f"{stem}.annotations.json"
-    if not p.exists():
-        raise HTTPException(404, f"annotations not found: {stem}")
-    return p
+    return _find_local(stem, ".annotations.json")
 
 
 def _atomic_write_json(path: Path, data: Any) -> None:
@@ -74,9 +92,9 @@ def root() -> RedirectResponse:
 @app.get("/api/sheets")
 def list_sheets() -> list[dict]:
     out = []
-    for records_p in sorted(LOCAL.glob("*.records.json")):
+    for records_p in sorted(_iter_local("*.records.json")):
         stem = records_p.name.removesuffix(".records.json")
-        annot_p = LOCAL / f"{stem}.annotations.json"
+        annot_p = records_p.with_name(f"{stem}.annotations.json")
         if not annot_p.exists():
             continue
         try:
@@ -144,6 +162,7 @@ class CellUpdate(BaseModel):
     english_slug: str | None = None
     wiki_url: str | None = None
     iconography: list[str] = Field(default_factory=list)
+    summary: str | None = None
     confidence: float = 1.0
 
 
@@ -161,6 +180,7 @@ def update_cell(stem: str, cell_number: int, payload: CellUpdate) -> dict:
                 "english_slug": payload.english_slug,
                 "wiki_url": payload.wiki_url,
                 "iconography": payload.iconography,
+                "summary": payload.summary,
                 "confidence": payload.confidence,
             }
             break
@@ -270,7 +290,7 @@ def apply_sheet(stem: str) -> JSONResponse:
 @app.get("/api/annotations")
 def list_annotations() -> list[dict]:
     out = []
-    for p in sorted(LOCAL.glob("*.annotations.json")):
+    for p in sorted(_iter_local("*.annotations.json")):
         stem = p.name.removesuffix(".annotations.json")
         try:
             d = json.loads(p.read_text(encoding="utf-8"))
@@ -299,6 +319,56 @@ def list_annotations() -> list[dict]:
 def get_annotations(stem: str) -> JSONResponse:
     p = _annotations_path(stem)
     return JSONResponse(json.loads(p.read_text(encoding="utf-8")))
+
+
+_BUCKET_SAFE = re.compile(r"[a-z0-9][a-z0-9_-]*")
+_UNCATEGORIZED = "_uncategorized"
+
+
+def _bucket_for(top_category: str | None) -> str:
+    """Return the top-level subdirectory under local/ for a sheet whose
+    annotations declare `top_category`. Blank/invalid → `_uncategorized/`
+    so it's obviously unfinished. Categories are kept lowercase + kebab."""
+    if not top_category:
+        return _UNCATEGORIZED
+    norm = top_category.strip().lower()
+    if not _BUCKET_SAFE.fullmatch(norm):
+        return _UNCATEGORIZED
+    return norm
+
+
+@app.post("/api/annotations/save")
+def save_annotations(payload: dict) -> dict:
+    """Persist an annotations JSON, bucketing by `top_category`. Stem is
+    derived from `sheet_filename`. If a same-stem file already exists in
+    another bucket (e.g. the user renamed the category), move it so we
+    never end up with two copies."""
+    stem_source = payload.get("sheet_filename") or ""
+    stem = Path(stem_source).stem
+    if not stem:
+        raise HTTPException(400, "missing sheet_filename in payload")
+    bucket = _bucket_for(payload.get("top_category"))
+    target_dir = LOCAL / bucket
+    target_dir.mkdir(parents=True, exist_ok=True)
+    target = target_dir / f"{stem}.annotations.json"
+
+    # If a same-stem annotations file lives elsewhere (different bucket or
+    # legacy flat path), relocate so we keep one file per sheet.
+    for existing in _iter_local(f"{stem}.annotations.json"):
+        if existing.resolve() != target.resolve():
+            existing.unlink()
+    # Same for the records sidecar.
+    for existing in _iter_local(f"{stem}.records.json"):
+        new_records = target_dir / existing.name
+        if existing.resolve() != new_records.resolve():
+            existing.replace(new_records)
+
+    _atomic_write_json(target, payload)
+    return {
+        "ok": True,
+        "path": str(target.relative_to(ROOT)),
+        "bucket": bucket,
+    }
 
 
 @app.get("/raw/{name}")

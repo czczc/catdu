@@ -140,6 +140,7 @@ function renderCell(cell, flagged) {
       english_slug: inputs.english_slug.value || null,
       wiki_url: inputs.wiki_url.value || null,
       iconography: iconState,
+      summary: inputs.summary.value.trim() || null,
       confidence: parseFloat(inputs.confidence.value) || 0,
     };
     const r = await fetch(

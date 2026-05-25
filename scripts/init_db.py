@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS logo (
     chinese_name TEXT,
     wiki_url TEXT,
     iconography TEXT,
+    summary TEXT,
     image_path TEXT NOT NULL,
     source_sheet TEXT,
     source_cell INTEGER,

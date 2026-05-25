@@ -212,7 +212,8 @@ main {
   grid-column: 1 / -1;
 }
 
-.fields input {
+.fields input,
+.fields textarea {
   font: 14px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   padding: 6px 8px;
   border: 1px solid var(--rule);
@@ -224,7 +225,13 @@ main {
   margin-top: 3px;
 }
 
-.fields input:focus {
+.fields textarea {
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.fields input:focus,
+.fields textarea:focus {
   outline: 2px solid var(--rust);
   outline-offset: -1px;
 }

@@ -32,21 +32,21 @@ A *sheet* is a single PNG in `raw/` holding ~72 cat logos in a grid. Going from 
 4. **Grid mode** (`g`): drag the orange grid lines so each cell holds exactly one cat + label. Rows and columns can be uneven — drag each line independently.
 5. **Cat mode** (`c`): click **Set template…**, then drag a rectangle inside one cell — that rectangle's cell-relative ratio is replicated to every cell. Fine-tune outliers by dragging individual handles. The "Apply resize to: this cell / whole column / whole row" toggle replays the same drag delta to siblings.
 6. **Text mode** (`t`): same flow for the label bbox.
-7. Click **Export annotations** — saves to `local/<sheet-stem>.annotations.json`. The tool autosaves to localStorage as you work, and **Load annotations…** lists every `local/*.annotations.json` so you can resume later.
+7. Click **Export annotations** — saves to `local/<top_category>/<sheet-stem>.annotations.json`. If you exported before setting the top/sub fields it goes to `local/_uncategorized/`; fix the category and re-export to move it. The tool autosaves to localStorage as you work, and **Load annotations…** lists every annotations file (any depth) so you can resume later.
 
 ### 2. Identify, normalize, and write the catalog
 
 Run the `/process-annotations` skill in Claude Code:
 
 ```
-/process-annotations local/myth-norse.annotations.json
+/process-annotations local/mythology/myth-norse.annotations.json
 ```
 
 The skill, defined at [`.claude/skills/process-annotations/SKILL.md`](.claude/skills/process-annotations/SKILL.md), does six things:
 
 1. Calls `scripts/prep_annotations.py` to render per-cell composites (cat tile + label tile) into `local/.annotation-cache/<sheet-stem>/`.
 2. Reads each composite, identifies the character (English + Chinese name, iconography, confidence).
-3. Writes `local/<sheet-stem>.records.json`.
+3. Writes `local/<top_category>/<sheet-stem>.records.json` (sibling of the annotations file).
 4. Validates `wiki_url`s via `scripts/validate_wiki_urls.py` — tries category-specific wikis first (e.g. `wiki.leagueoflegends.com` for LoL), then Wikipedia, then any existing URL.
 5. Calls `scripts/finalize_annotations.py` to crop + normalize each cat to a 200×200 PNG under `public/logos/<top>/<sub>/<set>/<slug>.png`, upsert the DB row, and regenerate `public/catalog.json` + per-sub-category shards.
 6. Reports cells with confidence < 0.7 or null `wiki_url`.
@@ -88,7 +88,7 @@ The template's `{name}` is the English name with spaces → underscores. Pattern
 
 ```
 raw/                       sheet PNGs (input)
-local/                     per-sheet annotations + records JSON; gitignored
+local/<top_category>/      per-sheet annotations + records JSON, bucketed by top category; gitignored
 public/                    site-served assets; logos + catalog shards; gitignored
 data/meowphosis.db         SQLite catalog DB; gitignored
 scripts/                   pipeline (prep / validate / finalize / build_manifest)

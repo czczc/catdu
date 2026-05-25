@@ -420,6 +420,15 @@ h3 {
   margin: 0 0 24px;
 }
 
+.logo-detail-meta .summary {
+  font-family: var(--serif);
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--ink);
+  margin: 0 0 24px;
+  max-width: 56ch;
+}
+
 .logo-detail-meta .wiki {
   display: inline-block;
   font-family: var(--serif);

@@ -143,8 +143,8 @@ function loadState() {
   try {
     const data = JSON.parse(raw);
     Object.assign(state, data);
-    els.topCat.value = data.topCategory || "mythology";
-    els.subCat.value = data.subCategory || "greek";
+    els.topCat.value = data.topCategory || "";
+    els.subCat.value = data.subCategory || "";
     els.setNum.value = data.setNumber || 1;
     els.rows.value = data.rows || 12;
     els.cols.value = data.cols || 6;
@@ -168,6 +168,10 @@ function loadState() {
 // ---------- Image loading ----------
 
 function loadSheet(file) {
+  // Picking a file via the Sheet input always starts a fresh annotation:
+  // clear per-sheet data so nothing bleeds in from the previous sheet, and
+  // reset the grid to evenly-spaced lines on the new image dimensions.
+  // To resume saved work on a sheet, use "Load annotations…" instead.
   const reader = new FileReader();
   reader.onload = (e) => {
     const img = new Image();
@@ -178,9 +182,13 @@ function loadSheet(file) {
       state.imageH = img.naturalHeight;
       canvas.width = img.naturalWidth;
       canvas.height = img.naturalHeight;
-      if (state.xLines.length !== state.cols + 1 || state.yLines.length !== state.rows + 1) {
-        resetGrid();
-      }
+      state.cells = {};
+      state.catRegion = null;
+      state.textRegion = null;
+      state.selected = null;
+      els.topCat.value = "";
+      els.subCat.value = "";
+      resetGrid();
       updateCellTotal();
       draw();
       setStatus(`Loaded ${file.name} (${img.naturalWidth}×${img.naturalHeight})`);
@@ -1143,6 +1151,28 @@ els.exportBtn.addEventListener("click", async () => {
   const defaultName = state.sheetFilename
     ? state.sheetFilename.replace(/\.[^.]+$/, "") + ".annotations.json"
     : "annotations.json";
+
+  // Preferred path: POST to the local tools server, which buckets the file
+  // under local/<top_category>/. Falls back to the file picker if offline.
+  try {
+    const r = await fetch("/api/annotations/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: json,
+    });
+    if (r.ok) {
+      const { path, bucket } = await r.json();
+      const note =
+        bucket === "_uncategorized"
+          ? ` — set top/sub category, then re-export to file the sheet`
+          : "";
+      setStatus(`Exported ${data.cells.length} cells → ${path}${note}`);
+      return;
+    }
+    console.warn("server save failed:", r.status, await r.text());
+  } catch (err) {
+    console.warn("server unreachable, falling back to file picker:", err);
+  }
 
   if ("showSaveFilePicker" in window) {
     try {
