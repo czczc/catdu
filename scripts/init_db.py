@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS logo (
     wiki_url TEXT,
     iconography TEXT,
     summary TEXT,
+    palette TEXT,
     image_path TEXT NOT NULL,
     source_sheet TEXT,
     source_cell INTEGER,

@@ -1,41 +1,34 @@
-import { ref } from "vue";
+import { createRouter, createWebHistory } from "vue-router";
 
-// Routes:
-//   #/                                  → home
-//   #/<top>/<sub>                       → sub-category (set tabs + grid)
-//   #/<top>/<sub>/<set>/<slug>          → logo detail
-// Anything else falls back to home.
+import Home from "./views/Home.vue";
+import Category from "./views/Category.vue";
+import NotFound from "./views/NotFound.vue";
 
-function parseHash() {
-  const raw = window.location.hash.replace(/^#\/?/, "").replace(/\/$/, "");
-  if (!raw) return { name: "home" };
-  const parts = raw.split("/").filter(Boolean);
-  if (parts.length === 2) {
-    return { name: "sub", top: parts[0], sub: parts[1] };
-  }
-  if (parts.length === 4) {
-    return {
-      name: "logo",
-      top: parts[0],
-      sub: parts[1],
-      set: parseInt(parts[2], 10),
-      slug: parts[3],
-    };
-  }
-  return { name: "home" };
-}
+// Detail is the same view as Category — the pane is an overlay driven by
+// route params, not a separately-mounted view.
+const routes = [
+  { path: "/", name: "home", component: Home },
+  { path: "/:top", name: "top", component: Category },
+  { path: "/:top/:sub", name: "sub", component: Category },
+  {
+    path: "/:top/:sub/:set(\\d+)/:slug",
+    name: "detail",
+    component: Category,
+  },
+  { path: "/:pathMatch(.*)*", name: "notfound", component: NotFound },
+];
 
-export const route = ref(parseHash());
-
-window.addEventListener("hashchange", () => {
-  route.value = parseHash();
-  window.scrollTo({ top: 0 });
+export const router = createRouter({
+  history: createWebHistory(import.meta.env.BASE_URL),
+  routes,
+  scrollBehavior(to, from) {
+    // Opening the detail pane shouldn't reset the page scroll; only
+    // navigations that change the underlying view do.
+    const isOverlayChange =
+      to.params.top === from.params.top &&
+      to.params.sub === from.params.sub &&
+      (to.name === "detail" || from.name === "detail");
+    if (isOverlayChange) return false;
+    return { top: 0 };
+  },
 });
-
-export function href(target) {
-  if (target.name === "home") return "#/";
-  if (target.name === "sub") return `#/${target.top}/${target.sub}`;
-  if (target.name === "logo")
-    return `#/${target.top}/${target.sub}/${target.set}/${target.slug}`;
-  return "#/";
-}

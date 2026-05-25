@@ -33,6 +33,10 @@ TARGET = 200
 BG_COLOR = (0xFE, 0xFC, 0xF7)
 CONTENT_SCALE = 0.95
 DEFAULT_DIFF_THRESHOLD = 6
+# Palette sampling: quantize to N buckets, drop near-bg, take top 5 by area.
+PALETTE_SLOTS = 5
+PALETTE_QUANTIZE = 16
+PALETTE_BG_TOLERANCE = 20
 # Cell-relative {x, y, w, h} (each 0..1) for the text region. Default None →
 # no masking (works when the cat is the only non-bg content in the cell).
 # Sheets where the label sits alongside the cat must supply text_region in the
@@ -130,6 +134,34 @@ def derive_cat_bbox(
         return None
     rx1, ry1, rx2, ry2 = bbox
     return [cx1 + rx1, cy1 + ry1, cx1 + rx2, cy1 + ry2]
+
+
+def sample_palette(img: Image.Image) -> list[str]:
+    """Return up to PALETTE_SLOTS hex codes for the most-occupied colors in
+    the normalized logo, excluding pixels near the cream background.
+    """
+    q = img.convert("RGB").quantize(
+        colors=PALETTE_QUANTIZE, method=Image.Quantize.MEDIANCUT
+    )
+    raw = q.getpalette() or []
+    counts = q.getcolors() or []
+    counts.sort(key=lambda c: -c[0])
+    bg_r, bg_g, bg_b = BG_COLOR
+    out: list[str] = []
+    for _, idx in counts:
+        r = raw[idx * 3]
+        g = raw[idx * 3 + 1]
+        b = raw[idx * 3 + 2]
+        if (
+            abs(r - bg_r) < PALETTE_BG_TOLERANCE
+            and abs(g - bg_g) < PALETTE_BG_TOLERANCE
+            and abs(b - bg_b) < PALETTE_BG_TOLERANCE
+        ):
+            continue
+        out.append(f"#{r:02x}{g:02x}{b:02x}")
+        if len(out) >= PALETTE_SLOTS:
+            break
+    return out
 
 
 def normalize_cat(
@@ -270,19 +302,22 @@ def main() -> None:
             text_bbox=ov.get("text_bbox"),
             diff_threshold=diff_threshold,
         )
+        palette = sample_palette(Image.open(PUBLIC / image_rel))
 
         cur.execute(
             """
             INSERT INTO logo
                 (set_id, english_name, english_slug, chinese_name, wiki_url,
-                 iconography, summary, image_path, source_sheet, source_cell, confidence)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 iconography, summary, palette, image_path, source_sheet,
+                 source_cell, confidence)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT (set_id, english_slug) DO UPDATE SET
                 english_name = excluded.english_name,
                 chinese_name = excluded.chinese_name,
                 wiki_url = excluded.wiki_url,
                 iconography = excluded.iconography,
                 summary = excluded.summary,
+                palette = excluded.palette,
                 image_path = excluded.image_path,
                 source_sheet = excluded.source_sheet,
                 source_cell = excluded.source_cell,
@@ -297,6 +332,7 @@ def main() -> None:
                 rec.get("wiki_url"),
                 json.dumps(rec.get("iconography", []), ensure_ascii=False),
                 rec.get("summary"),
+                json.dumps(palette, ensure_ascii=False),
                 image_rel,
                 annotations["sheet_filename"],
                 n,
