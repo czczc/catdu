@@ -12,18 +12,37 @@ const router = useRouter();
 const paneEl = ref(null);
 const previousFocus = ref(null);
 
-const relatedCats = computed(() => {
-  // Up to 6 cats from the same sub, alphabetical neighbors of `props.cat`,
-  // wrapping at edges, excluding self.
-  const peers = (store.catsByTop[props.cat.top] || [])
+const peerCats = computed(() =>
+  (store.catsByTop[props.cat.top] || [])
     .filter((c) => c.sub === props.cat.sub)
-    .sort((a, b) => a.english_name.localeCompare(b.english_name));
-  if (peers.length <= 1) return [];
-  const idx = peers.findIndex(
+    .sort((a, b) => a.english_name.localeCompare(b.english_name)),
+);
+
+const currentIdx = computed(() =>
+  peerCats.value.findIndex(
     (c) =>
       c.set_number === props.cat.set_number &&
       c.english_slug === props.cat.english_slug,
-  );
+  ),
+);
+
+const prevCat = computed(() => {
+  const peers = peerCats.value;
+  if (peers.length <= 1 || currentIdx.value === -1) return null;
+  return peers[(currentIdx.value - 1 + peers.length) % peers.length];
+});
+
+const nextCat = computed(() => {
+  const peers = peerCats.value;
+  if (peers.length <= 1 || currentIdx.value === -1) return null;
+  return peers[(currentIdx.value + 1) % peers.length];
+});
+
+const relatedCats = computed(() => {
+  // Up to 6 alphabetical neighbors of `props.cat`, wrapping, excluding self.
+  const peers = peerCats.value;
+  if (peers.length <= 1) return [];
+  const idx = currentIdx.value;
   if (idx === -1) return peers.slice(0, 6);
   const n = peers.length;
   const want = Math.min(6, n - 1);
@@ -37,6 +56,13 @@ const relatedCats = computed(() => {
   }
   return out;
 });
+
+function goTo(target) {
+  if (!target) return;
+  router.replace(
+    `/${target.top}/${target.sub}/${target.set_number}/${target.english_slug}`,
+  );
+}
 
 const palette = computed(() => props.cat.palette || []);
 
@@ -53,6 +79,12 @@ function onKeydown(e) {
   if (e.key === "Escape") {
     e.preventDefault();
     closePane();
+  } else if (e.key === "ArrowLeft" && prevCat.value) {
+    e.preventDefault();
+    goTo(prevCat.value);
+  } else if (e.key === "ArrowRight" && nextCat.value) {
+    e.preventDefault();
+    goTo(nextCat.value);
   } else if (e.key === "Tab" && paneEl.value) {
     // Focus trap.
     const focusables = paneEl.value.querySelectorAll(
@@ -133,9 +165,29 @@ watch(
         </header>
 
         <div class="pane-hero">
+          <button
+            v-if="prevCat"
+            type="button"
+            class="pane-nav pane-nav-prev"
+            @click="goTo(prevCat)"
+            :aria-label="`Previous: ${prevCat.english_name}`"
+            :title="prevCat.english_name"
+          >
+            <span aria-hidden="true">‹</span>
+          </button>
           <div class="pane-polaroid">
-            <Polaroid :cat="cat" :size="150" />
+            <Polaroid :cat="cat" :size="280" />
           </div>
+          <button
+            v-if="nextCat"
+            type="button"
+            class="pane-nav pane-nav-next"
+            @click="goTo(nextCat)"
+            :aria-label="`Next: ${nextCat.english_name}`"
+            :title="nextCat.english_name"
+          >
+            <span aria-hidden="true">›</span>
+          </button>
         </div>
 
         <section class="pane-titles">

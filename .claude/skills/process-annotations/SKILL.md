@@ -95,7 +95,15 @@ For each cell, crops the user-supplied `cat_bbox` from the sheet, scales at 95% 
 
 The finalize report prints `[USER]` vs `[AUTO]` per cell so it's clear which came from manual bbox vs the fallback.
 
-### 6. Report
+### 6. Upscale the new logos
+
+```bash
+uv run python scripts/upscale_logos.py --in-place --scale 2
+```
+
+Replaces each 200×200 logo PNG with a 400×400 version produced by `realesrgan-x4plus-anime` (run at native 4× then Lanczos-downsampled). The script is idempotent — it skips PNGs already ≥400px, so it only touches the new cells from this sheet. Atomic per-file rename, safe to interrupt.
+
+### 7. Report
 
 Summarize for the user:
 - Total cells processed (user / auto split)

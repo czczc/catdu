@@ -29,12 +29,13 @@ raw/                       sheet PNGs (input)
 local/<top_category>/      per-sheet annotations + records JSON, bucketed by top category; gitignored
 public/                    site-served assets; logos + catalog shards; gitignored
 data/meowphosis.db         SQLite catalog DB; gitignored
-scripts/                   pipeline (prep / validate / finalize / build_manifest / visibility / servers)
+scripts/                   pipeline (prep / validate / finalize / upscale / build_manifest / visibility / servers)
 tools/
   annotate/                annotation editor (static + served by tools/server.py)
   review/                  review/fix editor
   visibility/              hide/show top + sub categories
   server.py                FastAPI dev server for all tools
+  realesrgan/              realesrgan-ncnn-vulkan binary + anime model (gitignored; one-time setup)
 web/                       Vue/Vite public site
 docs/                      pipeline guide + ADRs + agent docs
 .claude/skills/            invocable skills (process-cell, process-annotations)

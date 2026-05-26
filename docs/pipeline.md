@@ -22,14 +22,15 @@ Run the `/process-annotations` skill in Claude Code:
 /process-annotations local/mythology/myth-norse.annotations.json
 ```
 
-The skill, defined at [`../.claude/skills/process-annotations/SKILL.md`](../.claude/skills/process-annotations/SKILL.md), does six things:
+The skill, defined at [`../.claude/skills/process-annotations/SKILL.md`](../.claude/skills/process-annotations/SKILL.md), does seven things:
 
 1. Calls `scripts/prep_annotations.py` to render per-cell composites (cat tile + label tile) into `local/.annotation-cache/<sheet-stem>/`.
 2. Reads each composite, identifies the character (English + Chinese name, iconography, confidence).
 3. Writes `local/<top_category>/<sheet-stem>.records.json` (sibling of the annotations file).
 4. Validates `wiki_url`s via `scripts/validate_wiki_urls.py` — tries category-specific wikis first (e.g. `wiki.leagueoflegends.com` for LoL), then Wikipedia, then any existing URL.
 5. Calls `scripts/finalize_annotations.py` to crop + normalize each cat to a 200×200 PNG under `public/logos/<top>/<sub>/<set>/<slug>.png`, upsert the DB row, and regenerate `public/catalog.json` + per-sub-category shards.
-6. Reports cells with confidence < 0.7 or null `wiki_url`.
+6. Calls `scripts/upscale_logos.py --in-place --scale 2` to upscale the new 200×200 PNGs to 400×400 with the `realesrgan-x4plus-anime` model. Idempotent — skips logos already ≥400px. Requires the [upscaler binary](#upscaler-setup-tools-realesrgan).
+7. Reports cells with confidence < 0.7 or null `wiki_url`.
 
 The annotations file is the source of truth for grid + bboxes; the records file is the source of truth for the LLM-derived semantics. Both live in `local/` and are gitignored.
 
@@ -75,3 +76,23 @@ CATEGORY_WIKI_PATTERNS = {
 ```
 
 The template's `{name}` is the English name with spaces → underscores. Patterns registered here become the *preferred* wiki source for that taxonomy (Wikipedia falls back). Re-run the script (or the whole `/process-annotations` skill) to retroactively update existing records.
+
+## Upscaler setup (`tools/realesrgan/`)
+
+The upscale step in `/process-annotations` shells out to [Real-ESRGAN ncnn-vulkan](https://github.com/xinntao/Real-ESRGAN-ncnn-vulkan). The binary + anime model weights live under `tools/realesrgan/` (gitignored — ~50MB total). To install on macOS:
+
+```bash
+mkdir -p tools/realesrgan && cd tools/realesrgan
+curl -L -o full.zip https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesrgan-ncnn-vulkan-20220424-macos.zip
+unzip -q full.zip && rm full.zip
+chmod +x realesrgan-ncnn-vulkan
+# Optional cleanup of demo files included in the zip:
+rm -f input.jpg input2.jpg onepiece_demo.mp4 README_macos.md
+```
+
+`scripts/upscale_logos.py` always runs the `realesrgan-x4plus-anime` model at native 4×, then Lanczos-downsamples to the requested scale (`--scale 2` → 400×400). Modes:
+
+- `--sample N` — upscale N random logos into `local/upscale-samples/` (with `__orig` and `__x{scale}` pairs) for side-by-side quality review. Originals untouched.
+- `--in-place` — overwrite every PNG under `public/logos/`. Atomic per-file rename; idempotent skip when a PNG is already ≥ target resolution.
+
+The original 200×200 PNGs from the first bulk run are preserved at `local/logos-200-backup/` (gitignored) as a restore point.

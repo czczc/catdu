@@ -956,8 +956,10 @@ body.detail-open {
 }
 
 .pane-hero {
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
   padding: 8px 0 16px;
   background: radial-gradient(
     ellipse at center,
@@ -968,6 +970,33 @@ body.detail-open {
 
 .pane-polaroid {
   filter: drop-shadow(0 14px 30px rgba(31, 28, 20, 0.18));
+}
+
+.pane-nav {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 120ms ease, transform 120ms ease, border-color 120ms ease;
+}
+
+.pane-nav:hover {
+  background: var(--paper-2);
+  border-color: var(--ink);
+  transform: scale(1.05);
+}
+
+.pane-nav:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
 }
 
 .pane-titles {

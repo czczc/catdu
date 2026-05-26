@@ -44,6 +44,7 @@ htmlcov/
 spike-output/
 local/
 tools/.run/
+tools/realesrgan/
 
 # Local deploy script — contains private server location
 scripts/deploy.sh
