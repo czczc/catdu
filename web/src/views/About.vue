@@ -54,6 +54,21 @@ import { totalCats, totalCategories } from "../catalog.js";
       </section>
 
       <section>
+        <h2>Feedback and ideas</h2>
+        <p>
+          Spotted an error, have a category you'd love to see, or just want to
+          say hi? Drop a note on the
+          <a
+            href="https://github.com/czczc/meowphosis/discussions"
+            target="_blank"
+            rel="noopener noreferrer"
+            >GitHub Discussions board</a
+          >. Threads stay open, no GitHub account required to read — only to
+          post.
+        </p>
+      </section>
+
+      <section>
         <h2>If you're a rights-holder</h2>
         <p>
           If you own the rights to something depicted here and would prefer
@@ -79,10 +94,5 @@ import { totalCats, totalCategories } from "../catalog.js";
       </section>
     </article>
 
-    <footer class="home-footer">
-      <p>
-        <router-link to="/">← Back to the catalog</router-link>
-      </p>
-    </footer>
   </main>
 </template>

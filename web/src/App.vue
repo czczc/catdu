@@ -2,6 +2,7 @@
 import { onMounted } from "vue";
 import { store, loadAll } from "./catalog.js";
 import AppHeader from "./components/AppHeader.vue";
+import AppFooter from "./components/AppFooter.vue";
 
 onMounted(() => {
   loadAll();
@@ -26,5 +27,6 @@ onMounted(() => {
   <template v-else>
     <AppHeader />
     <router-view />
+    <AppFooter />
   </template>
 </template>

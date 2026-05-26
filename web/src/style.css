@@ -350,21 +350,55 @@ button {
   margin: 0;
 }
 
-.home-footer {
-  margin: 48px 0 8px;
-  padding-top: 16px;
+.site-footer {
+  max-width: var(--page-max);
+  margin: 48px auto 24px;
+  padding: 16px var(--page-pad) 0;
   border-top: 1px solid var(--rule);
 }
 
-.home-footer a {
+.site-footer-inner {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.site-footer-note {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-mute);
+}
+
+.site-footer-links {
+  font-family: var(--sans);
+  font-size: 14px;
+  color: var(--ink-soft);
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.site-footer-links a {
   color: var(--ink-soft);
   text-decoration: underline;
   text-decoration-color: var(--rule);
-  margin-left: 6px;
 }
 
-.home-footer a:hover {
+.site-footer-links a:hover {
   text-decoration-color: currentColor;
+}
+
+.site-footer-current {
+  color: var(--ink-mute);
+}
+
+.site-footer-sep {
+  color: var(--ink-mute);
 }
 
 .about-body {
@@ -408,17 +442,6 @@ button {
 
 .about-body a:hover {
   text-decoration-color: currentColor;
-}
-
-.home-footer p {
-  margin: 0;
-  font-family: var(--sans);
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--ink-mute);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .masthead {
