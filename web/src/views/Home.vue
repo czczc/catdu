@@ -20,10 +20,12 @@ const CATEGORY_DESCRIPTIONS = {
     "States, provinces, and cities as cats — local food, monuments, and landscapes condensed into 200×200 pixels.",
   game:
     "Champions and characters from video games. Pulled straight from the lore.",
-  institution:
-    "Universities, national labs, federal agencies, and professional societies — the cats of academia.",
+  academia:
+    "Universities, national labs, federal agencies, and professional societies, each redrawn as their mascot's distant feline cousin.",
   science:
-    "Particle physics: the Standard Model's fundamental particles and their antimatter twins, posed as cats.",
+    "The Standard Model particles and the elements of the periodic table, posed as cats.",
+  food:
+    "Iconic dishes — dumplings, hotpots, street snacks, banquet centerpieces — each served up as a hungry cat.",
 };
 
 const cards = computed(() =>
@@ -50,8 +52,8 @@ const cards = computed(() =>
         <span class="meta-caps">HOME / INDEX</span>
       </div>
       <p class="lede">
-        A growing gallery of cute cat avatars reimagined as gods, game heroes,
-        and subatomic particles. Browse by theme.
+        A growing gallery of cute cat avatars reimagined as anything with a
+        story worth telling. Browse by theme.
       </p>
       <div class="masthead-meta meta-caps">
         <span>{{ totalCats }} cats</span>

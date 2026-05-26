@@ -17,16 +17,22 @@
     "game/league-of-legends/1/yasuo",
     "game/league-of-legends/1/garen"
   ],
-  "institution": [
-    "institution/usa/1/mit",
-    "institution/usa/1/harvard",
-    "institution/usa/1/stanford",
-    "institution/usa/1/nasa-jpl"
+  "academia": [
+    "academia/usa/1/mit",
+    "academia/usa/1/harvard",
+    "academia/usa/1/stanford",
+    "academia/usa/1/nasa-jpl"
   ],
   "science": [
     "science/physics/1/higgs-boson",
     "science/physics/1/electron",
     "science/physics/1/photon",
     "science/physics/1/top-quark"
+  ],
+  "food": [
+    "food/chinese/1/peking-duck",
+    "food/chinese/1/xiaolongbao",
+    "food/chinese/1/mapo-tofu",
+    "food/chinese/1/mooncake"
   ]
 }
