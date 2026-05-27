@@ -23,7 +23,7 @@ WEB_PORT="${WEB_PORT:-5173}"
 
 # Service registry: name → (port, health-path, start-cwd, start-cmd)
 svc_port()        { case "$1" in tools) echo "$TOOLS_PORT" ;; web) echo "$WEB_PORT" ;; esac; }
-svc_health_path() { case "$1" in tools) echo "/api/visibility" ;; web) echo "/meowphosis/" ;; esac; }
+svc_health_path() { case "$1" in tools) echo "/api/visibility" ;; web) echo "/catdu/" ;; esac; }
 svc_health_host() { case "$1" in tools) echo "127.0.0.1" ;; web) echo "localhost" ;; esac; }
 svc_health_url()  { echo "http://$(svc_health_host "$1"):$(svc_port "$1")$(svc_health_path "$1")"; }
 svc_cwd()         { case "$1" in tools) echo "$ROOT" ;; web) echo "$ROOT/web" ;; esac; }

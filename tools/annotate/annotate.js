@@ -1,4 +1,4 @@
-// Meowphosis Annotation Tool — v4
+// Annotation Tool — v4
 //
 // Workflow:
 //   1. Grid mode: drag the orange grid lines so each cell holds exactly one
@@ -12,7 +12,7 @@
 //   5. Export → JSON. Pipeline reads per-cell cat_bbox + text_bbox directly;
 //      no auto-derive needed when both are present.
 
-const STORAGE_KEY = "meowphosis.annotate.state.v4";
+const STORAGE_KEY = "annotate.state.v4";
 const DRAG_THRESHOLD_PX = 4;
 const LINE_HIT_PX = 6;
 const BBOX_HANDLE_PX = 8;

@@ -1,4 +1,4 @@
-# Meowphosis — Domain Context
+# Cat-D University — Domain Context
 
 A growing collection of AI-generated **cat logos**, organized by theme, browsable on a static website, and consumable as avatars by other projects (e.g. `~/Code/dunecat/`). New logos arrive in batches of ~200/day.
 

@@ -6,7 +6,7 @@ import { totalCats, totalCategories } from "../catalog.js";
   <main class="shell">
     <section class="masthead">
       <div class="masthead-row">
-        <h1 class="headline headline-home">About Meowphosis</h1>
+        <h1 class="headline headline-home">About Cat-D University</h1>
         <span class="meta-caps">HOME / ABOUT</span>
       </div>
       <p class="lede">
@@ -59,7 +59,7 @@ import { totalCats, totalCategories } from "../catalog.js";
           Spotted an error, have a category you'd love to see, or just want to
           say hi? Drop a note on the
           <a
-            href="https://github.com/czczc/meowphosis/discussions"
+            href="https://github.com/czczc/catdu/discussions"
             target="_blank"
             rel="noopener noreferrer"
             >GitHub Discussions board</a
@@ -74,10 +74,10 @@ import { totalCats, totalCategories } from "../catalog.js";
           If you own the rights to something depicted here and would prefer
           it not be reimagined as a cat on this page, please open an issue at
           <a
-            href="https://github.com/czczc/meowphosis/issues/new?title=Takedown%20request&labels=takedown"
+            href="https://github.com/czczc/catdu/issues/new?title=Takedown%20request&labels=takedown"
             target="_blank"
             rel="noopener noreferrer"
-            >github.com/czczc/meowphosis/issues</a
+            >github.com/czczc/catdu/issues</a
           >. The catalog is small and easy to update — anything you'd like
           removed will be taken down promptly, no questions asked.
         </p>

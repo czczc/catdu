@@ -52,7 +52,7 @@ const subMeta = computed(() => {
   <header class="hdr">
     <div class="hdr-inner">
       <router-link to="/" class="brand" aria-label="Home">
-        <span class="brand-mark">Meowphosis</span>
+        <span class="brand-mark">Cat-D University</span>
       </router-link>
       <nav class="crumb" aria-label="Breadcrumb">
         <router-link v-if="route.name !== 'home'" to="/">HOME</router-link>

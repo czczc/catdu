@@ -49,7 +49,7 @@ When done, click **Apply → DB**. This:
 
 ## 4. Verify on the site
 
-Refresh <http://localhost:5173/meowphosis/>. The home page lists top categories; clicking one opens a sub-category page with tabs for sibling sub-categories and sets. The header search filters by name + iconography across all loaded shards.
+Refresh <http://localhost:5173/catdu/>. The home page lists top categories; clicking one opens a sub-category page with tabs for sibling sub-categories and sets. The header search filters by name + iconography across all loaded shards.
 
 ## 5. Adjust visibility (optional)
 

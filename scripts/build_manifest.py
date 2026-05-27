@@ -13,7 +13,7 @@ import sqlite3
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DB_PATH = ROOT / "data" / "meowphosis.db"
+DB_PATH = ROOT / "data" / "catalog.db"
 PUBLIC = ROOT / "public"
 
 

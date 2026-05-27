@@ -5,7 +5,7 @@ description: Process a sheet annotation JSON (produced by the manual annotation 
 
 # /process-annotations
 
-Process a sheet of annotated cells into the meowphosis catalog. The user has dragged the grid lines and (optionally) marked skips or `cat_bbox` overrides for problem cells; this skill handles OCR, name resolution, iconography identification, image normalization, DB writes, and shard regen.
+Process a sheet of annotated cells into the catalog. The user has dragged the grid lines and (optionally) marked skips or `cat_bbox` overrides for problem cells; this skill handles OCR, name resolution, iconography identification, image normalization, DB writes, and shard regen.
 
 ## Argument
 

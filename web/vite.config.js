@@ -3,9 +3,9 @@ import vue from "@vitejs/plugin-vue";
 import { fileURLToPath, URL } from "node:url";
 import { copyFileSync } from "node:fs";
 
-// Base path is set per deploy target via VITE_BASE. Defaults to /meowphosis/
-// (GitHub Pages at https://czczc.github.io/meowphosis/); deploy.sh overrides
-// it to /~chao/meowphosis/ for the BNL hosting. publicDir is the repo-root
+// Base path is set per deploy target via VITE_BASE. Defaults to /catdu/
+// (GitHub Pages at https://czczc.github.io/catdu/); deploy.sh overrides
+// it to /~chao/catdu/ for the BNL hosting. publicDir is the repo-root
 // public/ folder so the extraction pipeline writes directly to what Vite ships.
 
 // SPA fallback for history-mode routes: hosts that serve 404.html for any
@@ -26,7 +26,7 @@ function spa404Fallback() {
 export default defineConfig({
   plugins: [vue(), spa404Fallback()],
   root: fileURLToPath(new URL(".", import.meta.url)),
-  base: process.env.VITE_BASE || "/meowphosis/",
+  base: process.env.VITE_BASE || "/catdu/",
   publicDir: fileURLToPath(new URL("../public", import.meta.url)),
   build: {
     outDir: fileURLToPath(new URL("../dist", import.meta.url)),

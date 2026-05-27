@@ -30,9 +30,9 @@ TOOLS = Path(__file__).resolve().parent
 LOCAL = ROOT / "local"
 RAW = ROOT / "raw"
 PUBLIC = ROOT / "public"
-DB_PATH = ROOT / "data" / "meowphosis.db"
+DB_PATH = ROOT / "data" / "catalog.db"
 
-app = FastAPI(title="meowphosis tools")
+app = FastAPI(title="Cat-D University tools")
 
 
 _SKIP_DIRS = {".annotation-cache", "_scratch"}

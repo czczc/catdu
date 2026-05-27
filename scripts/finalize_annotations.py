@@ -28,7 +28,7 @@ from PIL import Image, ImageChops, ImageDraw
 ROOT = Path(__file__).resolve().parent.parent
 RAW = ROOT / "raw"
 PUBLIC = ROOT / "public"
-DB_PATH = ROOT / "data" / "meowphosis.db"
+DB_PATH = ROOT / "data" / "catalog.db"
 
 TARGET = 200
 BG_COLOR = (0xFE, 0xFC, 0xF7)

@@ -1,4 +1,4 @@
-"""Initialize the meowphosis SQLite catalog and seed the tracer Zeus row.
+"""Initialize the SQLite catalog and seed the tracer Zeus row.
 
 Idempotent: safe to re-run. The schema follows ADR-0002 (SQLite source of truth +
 derived JSON shards). The `set` concept lives in the `logo_set` table — `set` is a
@@ -11,7 +11,7 @@ import sqlite3
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DB_PATH = ROOT / "data" / "meowphosis.db"
+DB_PATH = ROOT / "data" / "catalog.db"
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS top_category (

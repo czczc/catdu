@@ -126,7 +126,7 @@ wheels = [
 ]
 
 [[package]]
-name = "meowphosis"
+name = "catdu"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

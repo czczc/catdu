@@ -25,7 +25,7 @@ from urllib.parse import quote
 
 import httpx
 
-USER_AGENT = "meowphosis/0.1 (chao.zh@gmail.com)"
+USER_AGENT = "catdu/0.1 (chao.zh@gmail.com)"
 
 # (top_category, sub_category) -> list of URL templates.
 # Templates use {name} = english_name with spaces replaced by '_',

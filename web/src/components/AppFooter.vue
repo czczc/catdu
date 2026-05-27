@@ -15,14 +15,14 @@ const route = useRoute();
         <span v-else class="site-footer-current">About</span>
         <span class="site-footer-sep">·</span>
         <a
-          href="https://github.com/czczc/meowphosis/discussions"
+          href="https://github.com/czczc/catdu/discussions"
           target="_blank"
           rel="noopener noreferrer"
           >Feedback</a
         >
         <span class="site-footer-sep">·</span>
         <a
-          href="https://github.com/czczc/meowphosis"
+          href="https://github.com/czczc/catdu"
           target="_blank"
           rel="noopener noreferrer"
           >GitHub</a

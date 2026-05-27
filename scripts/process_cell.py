@@ -21,11 +21,11 @@ from pathlib import Path
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
-DB_PATH = ROOT / "data" / "meowphosis.db"
+DB_PATH = ROOT / "data" / "catalog.db"
 PUBLIC = ROOT / "public"
 TARGET = 200
 
-# Canonical logo background. All meowphosis logos share this cream regardless
+# Canonical logo background. All logos share this cream regardless
 # of subtle variations in the source sheet's printed background.
 BG_COLOR = (0xFE, 0xFC, 0xF7)
 

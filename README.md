@@ -1,4 +1,4 @@
-# meowphosis
+# Cat-D University
 
 A growing catalog of AI-generated cat avatars, organized by theme (mythology, geography, science, academia, food, …) and browsable as a static website. For domain vocabulary (logo, sheet, set, …), see [`CONTEXT.md`](CONTEXT.md).
 
@@ -20,7 +20,7 @@ scripts/servers.sh logs     # tail logs
 scripts/servers.sh stop     # stop both
 ```
 
-Then open <http://localhost:5180/> for the editing tools and <http://localhost:5173/meowphosis/> for the public site.
+Then open <http://localhost:5180/> for the editing tools and <http://localhost:5173/catdu/> for the public site.
 
 ## Layout
 
@@ -28,7 +28,7 @@ Then open <http://localhost:5180/> for the editing tools and <http://localhost:5
 raw/                       sheet PNGs (input)
 local/<top_category>/      per-sheet annotations + records JSON, bucketed by top category; gitignored
 public/                    site-served assets; logos + catalog shards; gitignored
-data/meowphosis.db         SQLite catalog DB; gitignored
+data/catalog.db         SQLite catalog DB; gitignored
 scripts/                   pipeline (prep / validate / finalize / upscale / build_manifest / visibility / servers)
 tools/
   annotate/                annotation editor (static + served by tools/server.py)
@@ -51,5 +51,5 @@ CONTEXT.md                 domain glossary
 
 ## Feedback
 
-Backlog and bug reports → [GitHub Issues](https://github.com/czczc/meowphosis/issues) (triage labels in [`docs/agents/triage-labels.md`](docs/agents/triage-labels.md)).
-Open-ended feedback and ideas → [GitHub Discussions](https://github.com/czczc/meowphosis/discussions).
+Backlog and bug reports → [GitHub Issues](https://github.com/czczc/catdu/issues) (triage labels in [`docs/agents/triage-labels.md`](docs/agents/triage-labels.md)).
+Open-ended feedback and ideas → [GitHub Discussions](https://github.com/czczc/catdu/discussions).

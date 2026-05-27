@@ -6,7 +6,7 @@ Accepted — 2026-05-24.
 
 ## Context
 
-Meowphosis extracts ~70 cat-avatar logos from each input [[Sheet]] (1–3 sheets/day, ~200 logos/day target). Per-logo extraction needs:
+Cat-D University extracts ~70 cat-avatar logos from each input [[Sheet]] (1–3 sheets/day, ~200 logos/day target). Per-logo extraction needs:
 
 - Chinese OCR of stylized labels
 - Entity resolution (Chinese name → canonical English name → English Wikipedia URL)

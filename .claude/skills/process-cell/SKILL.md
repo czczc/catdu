@@ -1,6 +1,6 @@
 ---
 name: process-cell
-description: Extract a single pre-cropped meowphosis cell image into the catalog. Identifies the character (Chinese label + English name + iconography + wiki URL), normalizes the cat to a 200×200 PNG via text masking and tight-bbox cropping, and upserts the logo row to `data/meowphosis.db`. Auto-regenerates JSON shards.
+description: Extract a single pre-cropped cell image into the catalog. Identifies the character (Chinese label + English name + iconography + wiki URL), normalizes the cat to a 200×200 PNG via text masking and tight-bbox cropping, and upserts the logo row to `data/catalog.db`. Auto-regenerates JSON shards.
 ---
 
 # /process-cell
@@ -50,7 +50,7 @@ import httpx
 r = httpx.head(
     '<URL>',
     follow_redirects=True,
-    headers={'User-Agent': 'meowphosis/0.1 (chao.zh@gmail.com)'},
+    headers={'User-Agent': 'catdu/0.1 (chao.zh@gmail.com)'},
 )
 print(r.status_code, r.url)
 "

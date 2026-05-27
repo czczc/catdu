@@ -16,7 +16,7 @@ Growth: ~200 logos/day → ~73,000/year. At that scale a single global JSON mani
 
 ## Decision
 
-- **SQLite at `data/meowphosis.db`** is the source of truth. Schema covers `top_category`, `sub_category`, `set` (with `(top_slug, sub_slug, set_number)` unique), and `logo` (with `(set_id, english_slug)` unique).
+- **SQLite at `data/catalog.db`** is the source of truth. Schema covers `top_category`, `sub_category`, `set` (with `(top_slug, sub_slug, set_number)` unique), and `logo` (with `(set_id, english_slug)` unique).
 - A **build step** (`scripts/build_manifest.py`) regenerates per-sub-category JSON shards at `public/catalog/<top>/<sub>.json` plus a small top-level `public/catalog.json` index (top/sub categories + counts only).
 - File-system URLs follow `public/logos/<top>/<sub>/<set_number>/<english_slug>.png` — e.g. `logos/mythology/greek/1/zeus.png`.
 - [[Set]] IDs are **sequential integers per (top, sub) pair**, not slugs. `set.display` carries the human-readable name.
