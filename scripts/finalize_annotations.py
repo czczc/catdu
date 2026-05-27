@@ -16,6 +16,7 @@ Idempotent on (set_id, english_slug) per ADR-0002.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sqlite3
 import subprocess
@@ -231,6 +232,19 @@ def normalize_cat(
     canvas.save(out_path)
 
 
+def image_fingerprint(
+    cat_bbox: list[int], text_bbox: list[int] | None, diff_threshold: int
+) -> str:
+    """Hash of everything that determines the rendered logo pixels. Lets
+    finalize skip re-rendering (and thus re-upscaling) a cell whose image
+    inputs are unchanged — review-only edits to metadata don't touch this.
+    Bump the leading version int if normalize_cat's algorithm changes.
+    """
+    payload = [2, cat_bbox, text_bbox, diff_threshold, TARGET, CONTENT_SCALE]
+    blob = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha1(blob.encode("utf-8")).hexdigest()
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("annotations", type=Path)
@@ -266,7 +280,12 @@ def main() -> None:
     set_id = ensure_taxonomy(conn, top, sub, set_num)
     cur = conn.cursor()
 
+    logo_cols = {row[1] for row in cur.execute("PRAGMA table_info(logo)").fetchall()}
+    if "image_fingerprint" not in logo_cols:
+        cur.execute("ALTER TABLE logo ADD COLUMN image_fingerprint TEXT")
+
     written: list[tuple[int, str, str]] = []  # (n, slug, source: "override"|"auto")
+    reused = 0
     skipped: list[tuple[int, str]] = []
 
     for n in range(1, rows * cols + 1):
@@ -295,22 +314,34 @@ def main() -> None:
                 continue
 
         image_rel = f"logos/{top}/{sub}/{set_num}/{rec['english_slug']}.png"
-        normalize_cat(
-            sheet,
-            cat_bbox,
-            PUBLIC / image_rel,
-            text_bbox=ov.get("text_bbox"),
-            diff_threshold=diff_threshold,
-        )
-        palette = sample_palette(Image.open(PUBLIC / image_rel))
+        image_path = PUBLIC / image_rel
+        fingerprint = image_fingerprint(cat_bbox, ov.get("text_bbox"), diff_threshold)
+        prior = cur.execute(
+            "SELECT image_fingerprint FROM logo WHERE set_id = ? AND english_slug = ?",
+            (set_id, rec["english_slug"]),
+        ).fetchone()
+        # Re-render only when the image inputs changed (or the PNG is missing).
+        # An unchanged PNG keeps its already-upscaled resolution, so the upscale
+        # step skips it — review-only metadata edits cost no image recompute.
+        if image_path.exists() and prior and prior[0] == fingerprint:
+            reused += 1
+        else:
+            normalize_cat(
+                sheet,
+                cat_bbox,
+                image_path,
+                text_bbox=ov.get("text_bbox"),
+                diff_threshold=diff_threshold,
+            )
+        palette = sample_palette(Image.open(image_path))
 
         cur.execute(
             """
             INSERT INTO logo
                 (set_id, english_name, english_slug, chinese_name, wiki_url,
                  iconography, summary, palette, image_path, source_sheet,
-                 source_cell, confidence)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 source_cell, confidence, image_fingerprint)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT (set_id, english_slug) DO UPDATE SET
                 english_name = excluded.english_name,
                 chinese_name = excluded.chinese_name,
@@ -322,6 +353,7 @@ def main() -> None:
                 source_sheet = excluded.source_sheet,
                 source_cell = excluded.source_cell,
                 confidence = excluded.confidence,
+                image_fingerprint = excluded.image_fingerprint,
                 added_at = datetime('now')
             """,
             (
@@ -337,6 +369,7 @@ def main() -> None:
                 annotations["sheet_filename"],
                 n,
                 rec.get("confidence", 1.0),
+                fingerprint,
             ),
         )
         written.append((n, rec["english_slug"], source))
@@ -352,8 +385,10 @@ def main() -> None:
 
     user_count = sum(1 for _, _, s in written if s == "user")
     auto_count = sum(1 for _, _, s in written if s == "auto")
+    rendered = len(written) - reused
     print(
         f"Wrote {len(written)} logo(s) ({user_count} user, {auto_count} auto), "
+        f"{rendered} re-rendered, {reused} reused unchanged, "
         f"skipped {len(skipped)}.",
         file=sys.stderr,
     )

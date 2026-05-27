@@ -276,12 +276,33 @@ def apply_sheet(stem: str) -> JSONResponse:
         capture_output=True,
         text=True,
     )
+
+    upscale = None
+    if result.returncode == 0:
+        upscale = subprocess.run(
+            [
+                "uv",
+                "run",
+                "python",
+                "scripts/upscale_logos.py",
+                "--in-place",
+                "--scale",
+                "2",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+        )
+
     return JSONResponse(
         {
-            "ok": result.returncode == 0,
+            "ok": result.returncode == 0
+            and (upscale is None or upscale.returncode == 0),
             "returncode": result.returncode,
             "stdout": result.stdout,
             "stderr": result.stderr,
+            "upscale_stdout": upscale.stdout if upscale else None,
+            "upscale_stderr": upscale.stderr if upscale else None,
             "gc_removed": removed,
         }
     )

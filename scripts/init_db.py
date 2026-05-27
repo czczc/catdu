@@ -54,6 +54,7 @@ CREATE TABLE IF NOT EXISTS logo (
     source_sheet TEXT,
     source_cell INTEGER,
     confidence REAL,
+    image_fingerprint TEXT,
     added_at TEXT NOT NULL DEFAULT (datetime('now')),
     UNIQUE (set_id, english_slug)
 );

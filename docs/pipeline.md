@@ -28,7 +28,7 @@ The skill, defined at [`../.claude/skills/process-annotations/SKILL.md`](../.cla
 2. Reads each composite, identifies the character (English + Chinese name, iconography, confidence).
 3. Writes `local/<top_category>/<sheet-stem>.records.json` (sibling of the annotations file).
 4. Validates `wiki_url`s via `scripts/validate_wiki_urls.py` — tries category-specific wikis first (e.g. `wiki.leagueoflegends.com` for LoL), then Wikipedia, then any existing URL.
-5. Calls `scripts/finalize_annotations.py` to crop + normalize each cat to a 200×200 PNG under `public/logos/<top>/<sub>/<set>/<slug>.png`, upsert the DB row, and regenerate `public/catalog.json` + per-sub-category shards.
+5. Calls `scripts/finalize_annotations.py` to crop + normalize each cat to a 200×200 PNG under `public/logos/<top>/<sub>/<set>/<slug>.png`, upsert the DB row, and regenerate `public/catalog.json` + per-sub-category shards. A per-logo `image_fingerprint` (hash of `cat_bbox` + `text_bbox` + threshold) is stored on the DB row; a cell whose image inputs are unchanged keeps its existing PNG instead of being re-rendered, so metadata-only edits don't reset an already-upscaled logo back to 200px.
 6. Calls `scripts/upscale_logos.py --in-place --scale 2` to upscale the new 200×200 PNGs to 400×400 with the `realesrgan-x4plus-anime` model. Idempotent — skips logos already ≥400px. Requires the [upscaler binary](#upscaler-setup-tools-realesrgan).
 7. Reports cells with confidence < 0.7 or null `wiki_url`.
 
@@ -45,6 +45,7 @@ When done, click **Apply → DB**. This:
 
 1. GCs any DB rows + PNGs whose slugs no longer appear in `records.json` (handles renames + deletions).
 2. Re-runs `finalize_annotations.py` to upsert remaining cells and rebuild shards.
+3. Re-runs `upscale_logos.py --in-place --scale 2` to restore any re-rendered 200×200 PNGs to 400×400 (idempotent — skips anything already ≥400px). Because finalize only re-renders cells whose image inputs changed, a review pass that edits metadata re-upscales nothing; changing one image re-upscales only that one.
 
 ## 4. Verify on the site
 
