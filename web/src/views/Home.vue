@@ -55,7 +55,7 @@ const cards = computed(() =>
       </div>
       <p class="lede">
         A growing gallery of cute cat avatars reimagined as anything with a
-        story worth telling. Browse by theme.
+        story worth telling. Browse by department.
       </p>
       <div class="masthead-meta meta-caps">
         <span>{{ totalCats }} cats</span>
