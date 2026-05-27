@@ -23,6 +23,8 @@ const props = defineProps({
         :alt="props.cat.english_name"
         :width="props.size"
         :height="props.size"
+        loading="lazy"
+        decoding="async"
       />
     </div>
   </div>
