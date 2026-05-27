@@ -91,7 +91,7 @@ button {
 .shell {
   max-width: var(--page-max);
   margin: 0 auto;
-  padding: clamp(40px, 6vw, 72px) var(--page-pad) 120px;
+  padding: clamp(24px, 4vw, 44px) var(--page-pad) 120px;
 }
 
 /* ---------- Sticky header ---------- */
@@ -326,11 +326,11 @@ button {
 }
 
 .headline-home {
-  font-size: clamp(56px, 8vw, 96px);
+  font-size: clamp(34px, 5.5vw, 60px);
 }
 
 .headline-cat {
-  font-size: clamp(64px, 9vw, 120px);
+  font-size: clamp(34px, 5.5vw, 60px);
 }
 
 .meta-caps {
@@ -458,11 +458,20 @@ button {
   flex-wrap: wrap;
 }
 
+.masthead-lede-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px 24px;
+  flex-wrap: wrap;
+}
+
 .masthead-meta {
   display: flex;
   gap: 10px;
   align-items: center;
-  margin-top: 4px;
+  white-space: nowrap;
+  margin-bottom: 5px;
 }
 
 .meta-dot {
@@ -480,7 +489,7 @@ button {
 .rule {
   height: 1px;
   background: var(--hair);
-  margin: 40px 0;
+  margin: 20px 0;
 }
 
 /* ---------- Polaroid ---------- */
@@ -514,7 +523,7 @@ button {
 .home-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: clamp(32px, 4vw, 56px);
+  gap: clamp(16px, 2vw, 28px) clamp(32px, 4vw, 56px);
   margin-top: 16px;
 }
 
@@ -529,7 +538,7 @@ button {
   display: flex;
   flex-direction: column;
   gap: 18px;
-  padding: 16px 0;
+  padding: 16px 0 0;
   cursor: pointer;
   outline: 0;
 }
@@ -537,13 +546,6 @@ button {
 .home-card:focus-visible {
   box-shadow: 0 0 0 2px var(--accent) inset;
   border-radius: 4px;
-}
-
-.home-card-idx {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--ink-mute);
-  letter-spacing: 0.12em;
 }
 
 .home-stack {
@@ -611,25 +613,9 @@ button {
   max-width: 42ch;
 }
 
-.home-card-cta {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  color: var(--ink);
-}
-
-.home-card-cta .arrow {
-  transition: transform 0.25s;
-}
-
 .home-card:hover .home-card-name,
 .home-card:focus-visible .home-card-name {
   color: var(--accent);
-}
-
-.home-card:hover .arrow,
-.home-card:focus-visible .arrow {
-  transform: translateX(4px);
 }
 
 @media (max-width: 720px) {

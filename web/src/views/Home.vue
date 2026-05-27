@@ -14,20 +14,13 @@ const searchResults = computed(() => {
 });
 
 const CATEGORY_DESCRIPTIONS = {
-  mythology:
-    "Gods and heroes from Olympus, Asgard, and Takamagahara — each cat dressed in their iconography.",
-  geography:
-    "States, provinces, and cities as cats — local food, monuments, and landscapes condensed into 200×200 pixels.",
-  game:
-    "Champions and characters from video games. Pulled straight from the lore.",
-  academia:
-    "Universities, national labs, federal agencies, and professional societies, each redrawn as their mascot's distant feline cousin.",
-  science:
-    "The Standard Model particles and the elements of the periodic table, posed as cats.",
-  food:
-    "Iconic dishes — dumplings, hotpots, street snacks, banquet centerpieces — each served up as a hungry cat.",
-  art:
-    "Masterpiece paintings reimagined with cats — the Mona Lisa, Starry Night, the Great Wave, and more, one whiskered homage at a time.",
+  mythology: "Gods, heroes, and monsters from the world's mythologies.",
+  geography: "Countries, regions, and landmarks from around the globe.",
+  game: "Characters from the worlds of video games.",
+  academia: "Universities, research labs, and institutions.",
+  science: "The building blocks of the universe.",
+  food: "Iconic dishes from the world's kitchens.",
+  art: "Masterpieces from the history of art.",
 };
 
 const cards = computed(() =>
@@ -50,17 +43,18 @@ const cards = computed(() =>
   <main class="shell">
     <section class="masthead">
       <div class="masthead-row">
-        <h1 class="headline headline-home">Cats as Everything</h1>
-        <span class="meta-caps">HOME / INDEX</span>
+        <h1 class="headline headline-home">Welcome to the Cat Dimension</h1>
       </div>
-      <p class="lede">
-        A growing gallery of cute cat avatars reimagined as anything with a
-        story worth telling. Browse by department.
-      </p>
-      <div class="masthead-meta meta-caps">
-        <span>{{ totalCats }} cats</span>
-        <span class="meta-dot">·</span>
-        <span>{{ totalCategories }} categories</span>
+      <div class="masthead-lede-row">
+        <p class="lede">
+          A growing gallery of cute cat avatars reimagined as anything with a
+          story worth telling. Browse by department.
+        </p>
+        <div class="masthead-meta meta-caps">
+          <span class="count-accent">{{ totalCats }} cats</span>
+          <span class="meta-dot">·</span>
+          <span>{{ totalCategories }} categories</span>
+        </div>
       </div>
     </section>
 
@@ -97,13 +91,11 @@ const cards = computed(() =>
 
     <div v-else class="home-grid">
       <router-link
-        v-for="(card, i) in cards"
+        v-for="card in cards"
         :key="card.slug"
         :to="`/${card.slug}`"
         class="home-card"
       >
-        <span class="home-card-idx">{{ String(i + 1).padStart(2, "0") }}</span>
-
         <div class="home-stack">
           <img
             v-for="(cat, j) in card.covers"
@@ -126,10 +118,6 @@ const cards = computed(() =>
           <p class="home-card-desc" v-if="card.description">
             {{ card.description }}
           </p>
-          <div class="home-card-cta meta-caps">
-            <span>Browse</span>
-            <span class="arrow">→</span>
-          </div>
         </div>
       </router-link>
     </div>
