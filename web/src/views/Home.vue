@@ -26,6 +26,8 @@ const CATEGORY_DESCRIPTIONS = {
     "The Standard Model particles and the elements of the periodic table, posed as cats.",
   food:
     "Iconic dishes — dumplings, hotpots, street snacks, banquet centerpieces — each served up as a hungry cat.",
+  art:
+    "Masterpiece paintings reimagined with cats — the Mona Lisa, Starry Night, the Great Wave, and more, one whiskered homage at a time.",
 };
 
 const cards = computed(() =>
