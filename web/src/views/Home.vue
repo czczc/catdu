@@ -21,6 +21,7 @@ const CATEGORY_DESCRIPTIONS = {
   science: "The building blocks of the universe.",
   food: "Iconic dishes from the world's kitchens.",
   art: "Masterpieces from the history of art.",
+  sports: "Teams, players, and icons from the world of sport.",
 };
 
 const cards = computed(() =>

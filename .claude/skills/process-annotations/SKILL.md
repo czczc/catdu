@@ -103,7 +103,26 @@ uv run python scripts/upscale_logos.py --in-place --scale 2
 
 Replaces each 200×200 logo PNG with a 400×400 version produced by `realesrgan-x4plus-anime` (run at native 4× then Lanczos-downsampled). The script is idempotent — it skips PNGs already ≥400px, so it only touches the new cells from this sheet. Atomic per-file rename, safe to interrupt.
 
-### 7. Report
+### 7. Name the set (one-word content noun)
+
+`scripts/finalize_annotations.py` creates new sets with `logo_set.display="Set"`. Every set needs a single-word content noun describing the theme (e.g. physics → "Particles", chemistry → "Elements", geography/usa → "States", mythology/* → "Deities", sports/soccer → "Nations"). This shows in the detail pane's **Set** column and the set-switcher chips.
+
+First check the current value — if a meaningful name is already there from a prior run, skip this step:
+
+```bash
+sqlite3 data/catalog.db "SELECT ls.id, sc.slug, ls.set_number, ls.display FROM logo_set ls JOIN sub_category sc ON sc.id=ls.sub_category_id WHERE sc.slug='<sub_slug>' AND ls.set_number=<set_number>;"
+```
+
+If it's still `"Set"`, pick a one-word noun fitting the sheet's theme and update. Ask the user if you're not sure:
+
+```bash
+sqlite3 data/catalog.db "UPDATE logo_set SET display='<OneWord>' WHERE id=<id>;"
+uv run python scripts/build_manifest.py
+```
+
+The manifest rebuild regenerates `public/catalog.json` and the affected shard.
+
+### 8. Report
 
 Summarize for the user:
 - Total cells processed (user / auto split)
