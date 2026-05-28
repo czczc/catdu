@@ -16,10 +16,10 @@ Growth: ~200 logos/day → ~73,000/year. At that scale a single global JSON mani
 
 ## Decision
 
-- **SQLite at `data/catalog.db`** is the source of truth. Schema covers `top_category`, `sub_category`, `set` (with `(top_slug, sub_slug, set_number)` unique), and `logo` (with `(set_id, english_slug)` unique).
+- **SQLite at `data/catalog.db`** is the source of truth. Schema covers `top_category`, `sub_category`, `logo_set` (with `(sub_category_id, set_number)` unique), and `logo` (with `(set_id, english_slug)` unique).
 - A **build step** (`scripts/build_manifest.py`) regenerates per-sub-category JSON shards at `public/catalog/<top>/<sub>.json` plus a small top-level `public/catalog.json` index (top/sub categories + counts only).
 - File-system URLs follow `public/logos/<top>/<sub>/<set_number>/<english_slug>.png` — e.g. `logos/mythology/greek/1/zeus.png`.
-- [[Set]] IDs are **sequential integers per (top, sub) pair**, not slugs. `set.display` carries the human-readable name.
+- [[Set]] IDs are **sequential integers per (top, sub) pair**, not slugs. `logo_set.display` carries the human-readable name.
 - Within-set [[Logo]] identity is the English-name slug. Re-extracting an existing name is an **upsert** — newer wins, image overwritten, source provenance refreshed.
 
 ## Alternatives considered
@@ -30,7 +30,7 @@ Growth: ~200 logos/day → ~73,000/year. At that scale a single global JSON mani
 | Postgres / hosted database | Requires hosting + connection management. Static GH Pages site can't query a remote DB without a backend. Overkill at this scale. |
 | SQLite shipped to browser via `sql.js` | Adds ~1 MB WASM to every page load. Per-sub-category JSON shards are smaller, faster, and need no client-side runtime. (Still available as a future enhancement for query-heavy consumers.) |
 | Per-set JSON shards (finer than per-sub-category) | More index files, more discoverability cost. No real payoff at projected sizes — a sub-category with 5 sets × 70 cells is still a small shard. |
-| Slug-based set IDs (`pixel-art`, `watercolor`) | Slug fragmentation risk across LLM runs (`pixel-art` vs `pixel_art` vs `pixel`). Numeric IDs eliminate the problem; `set.display` carries the human name and can be renamed without breaking URLs. |
+| Slug-based set IDs (`pixel-art`, `watercolor`) | Slug fragmentation risk across LLM runs (`pixel-art` vs `pixel_art` vs `pixel`). Numeric IDs eliminate the problem; `logo_set.display` carries the human name and can be renamed without breaking URLs. |
 | Append-only on duplicate logo names (`zeus-2.png`) | Junk-drawer growth across re-runs. Upsert matches the "discard raw sheets after processing" workflow — there is no expectation of keeping every generated variant of "Zeus". Variants belong in a different [[Set]]. |
 
 ## Consequences
@@ -38,11 +38,11 @@ Growth: ~200 logos/day → ~73,000/year. At that scale a single global JSON mani
 **Enables**
 - Fast static-site reads — one small shard per browse, never the whole catalog.
 - External consumers fetch a single sub-category shard for their needs.
-- Stable URLs via numeric set IDs. `set.display` and `style_description` can be edited freely without breaking links.
+- Stable URLs via numeric set IDs. `logo_set.display` and `style_description` can be edited freely without breaking links.
 - Trivial dedup, history, and provenance queries via SQL.
 
 **Costs**
-- The `.db` file is committed binary — diffs are unreadable. Mitigation: the JSON shards are the human-readable public contract; the binary is the canonical store; day-to-day inspection uses the shards or `sqlite3` CLI.
+- The catalog store — `data/catalog.db` plus its derived JSON shards and logo PNGs under `public/` — is **gitignored**, not committed. This keeps unreadable binary and bulk-asset diffs out of git history, at the cost of catalog state living outside version control: the canonical `.db` is kept locally and on the deploy target, while the repo tracks only code and pipeline scripts. Day-to-day inspection uses the shards or the `sqlite3` CLI.
 - A build step must run between mutation and site update. Cheap (one Python script invocation), but it is an extra step in the loop.
 
 **Reversibility**

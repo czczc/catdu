@@ -22,14 +22,9 @@ import { totalCats, totalCategories } from "../catalog.js";
       <section>
         <h2>About the avatars</h2>
         <p>
-          Every cat avatar on this site is generated with image AI from a
-          short, themed prompt — for example, "a chibi watercolor cat dressed
-          as Zeus, with a small lightning bolt and scepter, cream background."
-          The companion writeup (iconography, summary, wiki link) is
-          assembled by a language model and then reviewed by hand. Despite
-          the review pass, some details may be slightly off, miscredited, or
-          oversimplified. Read with discretion; don't cite the site as a
-          source for anything that matters.
+          Every cat avatar on this site is generated with image AI from a short, themed prompt.
+          The companion writeup (iconography, summary, wiki link) is assembled by a language model and then reviewed by hand. Despite the review pass, some details may be slightly off, miscredited, or
+          oversimplified. Read with discretion; don't cite the site as a source for anything that matters.
         </p>
       </section>
 
@@ -39,9 +34,8 @@ import { totalCats, totalCategories } from "../catalog.js";
           Categories are organized around concepts that already exist in the
           world: mythological figures, places, scientific ideas, characters
           from games and other media. The cats are reinterpretations, not
-          reproductions — no character art is copied, only the
-          <em>idea</em> of a character is reimagined as a cat with thematic
-          accessories.
+          reproductions. No character art is copied, only the
+          <em>idea</em> of a character is reimagined as a cat with thematic accessories.
         </p>
         <p>
           All names, characters, trademarks, and other intellectual property
@@ -63,8 +57,7 @@ import { totalCats, totalCategories } from "../catalog.js";
             target="_blank"
             rel="noopener noreferrer"
             >GitHub Discussions board</a
-          >. Threads stay open, no GitHub account required to read — only to
-          post.
+          >. Threads stay open, no GitHub account required to read,only to post.
         </p>
       </section>
 
@@ -72,12 +65,12 @@ import { totalCats, totalCategories } from "../catalog.js";
         <h2>If you're a rights-holder</h2>
         <p>
           If you own the rights to something depicted here and would prefer
-          it not be reimagined as a cat on this page, please open an issue at
+          it not be reimagined as a cat on this page, please open an issue
           <a
             href="https://github.com/czczc/catdu/issues/new?title=Takedown%20request&labels=takedown"
             target="_blank"
             rel="noopener noreferrer"
-            >github.com/czczc/catdu/issues</a
+            >here</a
           >. The catalog is small and easy to update — anything you'd like
           removed will be taken down promptly, no questions asked.
         </p>
