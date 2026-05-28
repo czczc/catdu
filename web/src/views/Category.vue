@@ -29,6 +29,35 @@ const subEntries = computed(() => {
   }));
 });
 
+// Sets within the active sub, for the secondary chip row. set_number is only
+// unique within a sub, so this is empty unless a single sub is selected.
+const setEntries = computed(() => {
+  if (!sub.value) return [];
+  const inSub = (store.catsByTop[top.value] || []).filter(
+    (c) => c.sub === sub.value,
+  );
+  const m = new Map();
+  for (const c of inSub) {
+    if (!m.has(c.set_number)) {
+      m.set(c.set_number, {
+        set_number: c.set_number,
+        display: c.set_display || `Set ${c.set_number}`,
+        count: 0,
+      });
+    }
+    m.get(c.set_number).count++;
+  }
+  return [...m.values()].sort((a, b) => a.set_number - b.set_number);
+});
+
+// The set whose grid is shown. From the URL when present (set/detail routes),
+// else the lowest set in the sub. null when no sub is selected (the "All" view
+// spans subs, where set numbers aren't comparable).
+const activeSet = computed(() => {
+  if (route.params.set) return Number(route.params.set);
+  return setEntries.value[0]?.set_number ?? null;
+});
+
 const sortMode = computed(() => {
   const q = String(route.query.sort || "az").toLowerCase();
   return ["id", "az", "za", "confidence"].includes(q) ? q : "az";
@@ -38,7 +67,9 @@ const query = computed(() => String(route.query.q || "").trim());
 
 const cats = computed(() => {
   const all = (store.catsByTop[top.value] || []).filter(
-    (c) => !sub.value || c.sub === sub.value,
+    (c) =>
+      (!sub.value || c.sub === sub.value) &&
+      (activeSet.value == null || c.set_number === activeSet.value),
   );
   const filtered = searchCats(query.value, all);
   const arr = [...filtered];
@@ -74,6 +105,20 @@ function setSub(nextSlug) {
     ? { top: top.value, sub: nextSlug }
     : { top: top.value };
   router.replace({ name: nextSlug ? "sub" : "top", params, query: route.query });
+}
+
+function setSet(n) {
+  // The lowest set is the sub's default — it lives at the bare sub URL so the
+  // sub chip and first set chip agree. Other sets get an explicit /:set URL.
+  const isDefault = setEntries.value[0]?.set_number === n;
+  const params = isDefault
+    ? { top: top.value, sub: sub.value }
+    : { top: top.value, sub: sub.value, set: String(n) };
+  router.replace({
+    name: isDefault ? "sub" : "set",
+    params,
+    query: route.query,
+  });
 }
 
 function setSort(e) {
@@ -143,6 +188,21 @@ const detailCat = computed(() => {
           <option value="id">ID</option>
         </select>
       </label>
+    </div>
+
+    <div v-if="setEntries.length > 1" class="set-row">
+      <span class="set-row-label">Set</span>
+      <button
+        v-for="entry in setEntries"
+        :key="entry.set_number"
+        type="button"
+        class="set-chip"
+        :class="{ 'set-chip-on': activeSet === entry.set_number }"
+        @click="setSet(entry.set_number)"
+      >
+        {{ entry.display }}
+        <span class="set-chip-count">{{ entry.count }}</span>
+      </button>
     </div>
 
     <div v-if="cats.length === 0" class="empty">

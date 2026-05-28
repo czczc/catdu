@@ -12,6 +12,7 @@ const routes = [
   { path: "/about", name: "about", component: About },
   { path: "/:top", name: "top", component: Category },
   { path: "/:top/:sub", name: "sub", component: Category },
+  { path: "/:top/:sub/:set(\\d+)", name: "set", component: Category },
   {
     path: "/:top/:sub/:set(\\d+)/:slug",
     name: "detail",

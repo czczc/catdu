@@ -721,6 +721,62 @@ button {
   background-position: right 10px center;
 }
 
+/* Secondary set-switcher row */
+.set-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: -8px 0 24px;
+}
+
+.set-row-label {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-right: 4px;
+}
+
+/* Set chips — sized to match the detail page's iconography tags, smaller than
+   the category chips above. */
+.set-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  border: 1px solid var(--hair);
+  border-radius: 100px;
+  color: var(--ink-soft);
+  background: var(--card);
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.set-chip:hover {
+  color: var(--ink);
+  border-color: var(--ink-soft);
+}
+
+.set-chip-on {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+.set-chip-on:hover {
+  color: var(--paper);
+}
+
+.set-chip-count {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.6;
+}
+
 /* Thumb grid */
 .thumb-grid {
   display: grid;
@@ -1038,7 +1094,7 @@ body.detail-open {
 
 .pane-stats {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 0;
   border-top: 1px solid var(--hair);
   border-bottom: 1px solid var(--hair);

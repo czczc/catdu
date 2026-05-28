@@ -53,6 +53,7 @@ export async function loadAll() {
             top,
             sub,
             set_number: set.set_number,
+            set_display: set.display,
             top_display: shard.top.display,
             sub_display: shard.sub.display,
           };

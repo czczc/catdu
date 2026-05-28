@@ -66,13 +66,34 @@ function goTo(target) {
 
 const palette = computed(() => props.cat.palette || []);
 
+// Lowest set in this cat's sub — the default set, which lives at the bare sub
+// URL (matching the set-switcher convention in Category.vue).
+const lowestSet = computed(() => {
+  const inSub = (store.catsByTop[props.cat.top] || []).filter(
+    (c) => c.sub === props.cat.sub,
+  );
+  return inSub.length ? Math.min(...inSub.map((c) => c.set_number)) : null;
+});
+
 function closePane() {
-  router.replace({
-    name: props.cat.sub ? "sub" : "top",
-    params: props.cat.sub
-      ? { top: props.cat.top, sub: props.cat.sub }
-      : { top: props.cat.top },
-  });
+  // Return to the list scoped to this logo's set, not just the category.
+  if (!props.cat.sub) {
+    router.replace({ name: "top", params: { top: props.cat.top } });
+  } else if (props.cat.set_number === lowestSet.value) {
+    router.replace({
+      name: "sub",
+      params: { top: props.cat.top, sub: props.cat.sub },
+    });
+  } else {
+    router.replace({
+      name: "set",
+      params: {
+        top: props.cat.top,
+        sub: props.cat.sub,
+        set: String(props.cat.set_number),
+      },
+    });
+  }
 }
 
 function onKeydown(e) {
@@ -216,13 +237,14 @@ watch(
             </span>
           </div>
           <div class="stat">
-            <span class="stat-k">Series</span>
-            <span class="stat-v">
-              {{ cat.sub_display
-              }}<template v-if="(cat.set_number ?? 1) > 1">
-                · Set {{ cat.set_number }}</template
-              >
-            </span>
+            <span class="stat-k">Category</span>
+            <span class="stat-v">{{ cat.sub_display }}</span>
+          </div>
+          <div class="stat">
+            <span class="stat-k">Set</span>
+            <span class="stat-v">{{
+              cat.set_display || `Set ${cat.set_number}`
+            }}</span>
           </div>
         </div>
 
