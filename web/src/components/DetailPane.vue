@@ -12,17 +12,20 @@ const router = useRouter();
 const paneEl = ref(null);
 const previousFocus = ref(null);
 
+// Peers for prev/next and the "Also in" grid are scoped to the current set,
+// not the whole sub — each set is its own browsable page.
 const peerCats = computed(() =>
   (store.catsByTop[props.cat.top] || [])
-    .filter((c) => c.sub === props.cat.sub)
+    .filter(
+      (c) =>
+        c.sub === props.cat.sub && c.set_number === props.cat.set_number,
+    )
     .sort((a, b) => a.english_name.localeCompare(b.english_name)),
 );
 
 const currentIdx = computed(() =>
   peerCats.value.findIndex(
-    (c) =>
-      c.set_number === props.cat.set_number &&
-      c.english_slug === props.cat.english_slug,
+    (c) => c.english_slug === props.cat.english_slug,
   ),
 );
 
@@ -276,7 +279,7 @@ watch(
         <section v-if="relatedCats.length" class="pane-sect">
           <header class="pane-sect-hd">
             <span class="pane-sect-label"
-              >Also in {{ cat.sub_display }}</span
+              >Also in {{ cat.set_display || cat.sub_display }}</span
             >
             <span class="pane-sect-rule" />
           </header>
