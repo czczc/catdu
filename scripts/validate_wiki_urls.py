@@ -8,9 +8,13 @@ is registered, it becomes the preferred source; Wikipedia is the fallback.
 Candidate order per cell:
   1. Category-specific URL patterns from CATEGORY_WIKI_PATTERNS, if any
      are registered for the annotations' (top_category, sub_category).
-  2. https://en.wikipedia.org/wiki/<english_name>.
-  3. The records' existing wiki_url, if any — last resort, so manual
-     overrides via the review UI still survive if every pattern 404s.
+  2. The records' existing wiki_url, if any — the LLM (or a manual review
+     override) picks a concept-specific article disambiguated to the set's
+     theme (e.g. Python_(programming_language), not the bare Python
+     disambiguation page). Preferred over the bare title so we resolve to
+     the specific concept rather than a generic one.
+  3. https://en.wikipedia.org/wiki/<english_name> — last-resort generic
+     fallback when there's no specific URL.
 
 HEAD each candidate; set wiki_url to the first that returns 200,
 otherwise null. Idempotent — safe to re-run any time.
@@ -51,15 +55,19 @@ def candidate_urls(
 ) -> list[str]:
     out: list[str] = []
     encoded = _encode_name(english_name)
+    # 1. Category-specific franchise wikis, if registered.
     for tmpl in CATEGORY_WIKI_PATTERNS.get((top, sub), []):
         url = tmpl.format(name=encoded)
         if url not in out:
             out.append(url)
+    # 2. The records' existing wiki_url — the LLM's concept-specific article.
+    #    Tried before the bare title so a disambiguation page can't win.
+    if existing and existing not in out:
+        out.append(existing)
+    # 3. Bare https://en.wikipedia.org/wiki/<english_name> — generic fallback.
     wiki = f"https://en.wikipedia.org/wiki/{encoded}"
     if wiki not in out:
         out.append(wiki)
-    if existing and existing not in out:
-        out.append(existing)
     return out
 
 

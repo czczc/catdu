@@ -41,7 +41,7 @@ Per cell, extract:
 | `chinese_name` | string | The Chinese label as written. If the source label is English (and `english_override` is set or you see English text), produce the Chinese translation (e.g. "Zeus" → "宙斯"). |
 | `english_name` | string | Canonical English name. If `english_override` is in the manifest, **use it verbatim**. Otherwise translate from the Chinese (e.g. "宙斯" → "Zeus"). Drop article-style decorations: "Zeus" not "Greek god Zeus". |
 | `english_slug` | string | ASCII-slugged English name, lowercase, kebab-case: `zeus`, `loki`, `freyja`. |
-| `wiki_url` | string \| null | `https://en.wikipedia.org/wiki/<EnglishName>` if confidently resolvable. Null otherwise — do not invent. |
+| `wiki_url` | string \| null | Resolve to the article for **this set's specific concept**, not a generic/disambiguation page. Use a disambiguated title anchored to the sheet's theme — e.g. for a programming set, `https://en.wikipedia.org/wiki/Python_(programming_language)` not `/wiki/Python`, `C_(programming_language)` not `C`, `React_(software)` not `React`. Prefer the concept-specific form even when the bare title also exists. Null if you can't confidently resolve it — do not invent. |
 | `iconography` | string[] | 1–4 short visual cues you can SEE on the cat that link to this character. e.g. Zeus → `["lightning bolt", "scepter"]`, Loki → `["black coat", "snake"]`. Avoid generic terms ("crown") if every cat has one. |
 | `summary` | string | 1–2 short sentences (≈25–45 words) describing what/who this is, with enough context to relate back to the iconography on the cat. e.g. Ares → "Ares is the Greek god of war and courage, often depicted in armor with a spear and helmet — the cat wears a crested Greek helmet and carries a spear." Skip "the cat wears…" framing when the connection is obvious. |
 | `confidence` | number, 0..1 | Drop below 0.7 if the label is illegible, iconography doesn't match the named character, or there's any other reason to flag for human review. |
@@ -80,8 +80,10 @@ uv run python scripts/validate_wiki_urls.py <ANNOTATIONS_PATH> <RECORDS_PATH>
 For each cell, HEAD-tries the candidate URLs in this order — keeping the first that returns 200, otherwise nulling the field:
 
 1. Category-specific wiki templates registered in `CATEGORY_WIKI_PATTERNS` in the script, keyed by `(top_category, sub_category)`. e.g. `game/league-of-legends` → `https://wiki.leagueoflegends.com/en-us/{name}`.
-2. `https://en.wikipedia.org/wiki/<EnglishName>` (spaces → underscores) as a fallback.
-3. The records' existing `wiki_url`, last — preserves manual overrides made via the review UI.
+2. The records' existing `wiki_url` — the concept-specific article you wrote in step 2 (e.g. `Python_(programming_language)`). Tried **before** the bare title so a generic disambiguation page can't win, and so manual overrides from the review UI survive.
+3. `https://en.wikipedia.org/wiki/<EnglishName>` (spaces → underscores) as a last-resort generic fallback.
+
+So whatever specific URL you author in step 2 is what gets validated and kept — the bare-title fallback only fires when you left `wiki_url` null or it 404s. Don't rely on the fallback to disambiguate for you; author the specific URL yourself.
 
 When a category-specific pattern is defined, it becomes the *preferred* source — even Wikipedia URLs that resolved on a prior run get re-targeted to the franchise wiki on the next run. To add a new game/franchise, add a row to `CATEGORY_WIKI_PATTERNS` and re-run. The validation uses a User-Agent (Wikipedia 403s anonymous requests).
 
