@@ -137,6 +137,46 @@ def derive_cat_bbox(
     return [cx1 + rx1, cy1 + ry1, cx1 + rx2, cy1 + ry2]
 
 
+def sample_background(img: Image.Image, border: int = 3) -> tuple[int, int, int]:
+    """Median color of the crop's border ring — i.e. this sheet's *actual* local
+    background. Used only for content-tightening diffs, never for the output
+    canvas, so the logo's visible cream stays BG_COLOR regardless.
+
+    Sheets vary slightly off the canonical cream (≈#f9f6ef vs #fefcf7) and carry
+    JPEG/texture noise; diffing against the true local bg lets a low threshold
+    cleanly separate cat from background instead of catching noisy margin.
+
+    Falls back to BG_COLOR if the sampled color drifts far from cream — e.g. a
+    cat that fills the bbox to its edges would contaminate the border — so
+    detection can never dramatically shift behavior.
+    """
+    w, h = img.size
+    if w < 2 * border or h < 2 * border:
+        return BG_COLOR
+    edges = [
+        img.crop((0, 0, w, border)),
+        img.crop((0, h - border, w, h)),
+        img.crop((0, 0, border, h)),
+        img.crop((w - border, 0, w, h)),
+    ]
+    rs: list[int] = []
+    gs: list[int] = []
+    bs: list[int] = []
+    for e in edges:
+        d = e.convert("RGB").tobytes()
+        rs.extend(d[0::3])
+        gs.extend(d[1::3])
+        bs.extend(d[2::3])
+    rs.sort()
+    gs.sort()
+    bs.sort()
+    m = len(rs) // 2
+    bg = (rs[m], gs[m], bs[m])
+    if max(abs(bg[i] - BG_COLOR[i]) for i in range(3)) > 40:
+        return BG_COLOR
+    return bg
+
+
 def sample_palette(img: Image.Image) -> list[str]:
     """Return up to PALETTE_SLOTS hex codes for the most-occupied colors in
     the normalized logo, excluding pixels near the cream background.
@@ -215,7 +255,11 @@ def normalize_cat(
             ImageDraw.Draw(cat).rectangle([ix1, iy1, ix2, iy2], fill=BG_COLOR)
 
     # Tighten to actual non-bg content so the cat sits centered after letterbox.
-    bg_img = Image.new("RGB", cat.size, BG_COLOR)
+    # Diff against the sheet's *sampled* background, not the canonical cream, so
+    # a slightly-off or noisy sheet background doesn't get mistaken for cat and
+    # bloat the bbox (which would scale the cat down). The canvas fill below is
+    # still BG_COLOR, so the logo's visible background is unchanged.
+    bg_img = Image.new("RGB", cat.size, sample_background(cat))
     diff = ImageChops.difference(cat, bg_img).convert("L")
     mask = diff.point(lambda v: 255 if v > diff_threshold else 0)
     tight = mask.getbbox()
@@ -240,7 +284,7 @@ def image_fingerprint(
     inputs are unchanged — review-only edits to metadata don't touch this.
     Bump the leading version int if normalize_cat's algorithm changes.
     """
-    payload = [2, cat_bbox, text_bbox, diff_threshold, TARGET, CONTENT_SCALE]
+    payload = [3, cat_bbox, text_bbox, diff_threshold, TARGET, CONTENT_SCALE]
     blob = json.dumps(payload, sort_keys=True, separators=(",", ":"))
     return hashlib.sha1(blob.encode("utf-8")).hexdigest()
 
