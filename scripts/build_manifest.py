@@ -96,6 +96,7 @@ def build() -> None:
                     ls.style_description  AS style_description,
                     l.english_name, l.english_slug, l.chinese_name, l.wiki_url,
                     l.iconography, l.summary, l.palette, l.image_path,
+                    l.image_fingerprint,
                     l.confidence, l.source_cell
                 FROM logo l
                 JOIN logo_set ls    ON l.set_id = ls.id
@@ -126,7 +127,14 @@ def build() -> None:
                         "iconography": json.loads(r["iconography"]) if r["iconography"] else [],
                         "summary": r["summary"],
                         "palette": json.loads(r["palette"]) if r["palette"] else [],
-                        "image_path": r["image_path"],
+                        # Cache-bust on the rendered-pixel fingerprint: stable
+                        # while the image is unchanged, new when it re-renders,
+                        # so browsers refetch only logos that actually changed.
+                        "image_path": (
+                            f"{r['image_path']}?v={r['image_fingerprint'][:8]}"
+                            if r["image_fingerprint"]
+                            else r["image_path"]
+                        ),
                         "confidence": r["confidence"],
                         "source_cell": r["source_cell"],
                     }
