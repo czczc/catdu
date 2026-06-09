@@ -51,6 +51,32 @@ function pwa() {
       globPatterns: ["**/*.{js,css,html}"],
       globIgnores: ["logos/**", "catalog/**"],
       navigateFallbackDenylist: [/\/(logos|catalog)\//],
+      // Runtime caching makes previously-visited content browsable offline,
+      // without precaching the whole (235M+, growing) catalog. Only what the
+      // user actually fetches is cached.
+      runtimeCaching: [
+        {
+          // Catalog index + per-sub-category shards (JSON). SWR: instant from
+          // cache offline, refreshed in the background as the catalog grows.
+          urlPattern: /\/catalog(\.json$|\/.*\.json$)/,
+          handler: "StaleWhileRevalidate",
+          options: {
+            cacheName: "catdu-catalog",
+            cacheableResponse: { statuses: [0, 200] },
+          },
+        },
+        {
+          // Logo PNGs. CacheFirst (URLs are stable) with a bounded LRU so the
+          // on-device cache can't grow without limit.
+          urlPattern: /\/logos\/.*\.png(\?|$)/,
+          handler: "CacheFirst",
+          options: {
+            cacheName: "catdu-logos",
+            expiration: { maxEntries: 500, maxAgeSeconds: 60 * 60 * 24 * 30 },
+            cacheableResponse: { statuses: [0, 200] },
+          },
+        },
+      ],
     },
   });
 }
