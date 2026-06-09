@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
+import { VitePWA } from "vite-plugin-pwa";
 import { fileURLToPath, URL } from "node:url";
 import { copyFileSync } from "node:fs";
 
@@ -23,13 +24,49 @@ function spa404Fallback() {
   };
 }
 
+// PWA: make the site installable on Android (home-screen icon, standalone,
+// full-screen). The service worker precaches ONLY the built app shell —
+// publicDir is the repo-root public/, which also holds the (large, growing)
+// logos/ and catalog/ trees, so those are explicitly kept out of the precache.
+// Runtime caching of shards + visited logos is handled separately (issue #17).
+function pwa() {
+  return VitePWA({
+    registerType: "autoUpdate",
+    includeAssets: ["favicon.svg", "favicon.png", "pwa-192.png", "pwa-512.png", "pwa-maskable-512.png"],
+    manifest: {
+      id: "/catdu/",
+      name: "Cat-D University",
+      short_name: "Cat-D U",
+      description: "A catalog of AI-generated cat logos, organized by theme.",
+      theme_color: "#c25a2a",
+      background_color: "#fefcf7",
+      display: "standalone",
+      icons: [
+        { src: "pwa-192.png", sizes: "192x192", type: "image/png" },
+        { src: "pwa-512.png", sizes: "512x512", type: "image/png" },
+        { src: "pwa-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+      ],
+    },
+    workbox: {
+      globPatterns: ["**/*.{js,css,html}"],
+      globIgnores: ["logos/**", "catalog/**"],
+      navigateFallbackDenylist: [/\/(logos|catalog)\//],
+    },
+  });
+}
+
 export default defineConfig({
-  plugins: [vue(), spa404Fallback()],
+  plugins: [vue(), spa404Fallback(), pwa()],
   root: fileURLToPath(new URL(".", import.meta.url)),
   base: process.env.VITE_BASE || "/catdu/",
   publicDir: fileURLToPath(new URL("../public", import.meta.url)),
   build: {
     outDir: fileURLToPath(new URL("../dist", import.meta.url)),
     emptyOutDir: true,
+  },
+  // Allow tunneled hosts (ngrok) to reach `npm run preview` for on-device
+  // PWA install testing over HTTPS. Preview server is local/dev-only.
+  preview: {
+    allowedHosts: [".ngrok-free.app", ".ngrok-free.dev"],
   },
 });
