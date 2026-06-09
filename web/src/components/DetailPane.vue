@@ -67,6 +67,35 @@ function goTo(target) {
   );
 }
 
+// Touch swipe on the hero: left -> next cat, right -> prev (mirrors the
+// ‹ › buttons and arrow keys). Vertical drags fall through to normal pane
+// scrolling — the browser fires pointercancel and we abandon the gesture.
+// Gated to touch so mouse drags / text selection on desktop are unaffected.
+let swipeStartX = 0;
+let swipeStartY = 0;
+let swiping = false;
+
+function onSwipeStart(e) {
+  if (e.pointerType !== "touch") return;
+  swipeStartX = e.clientX;
+  swipeStartY = e.clientY;
+  swiping = true;
+}
+
+function onSwipeEnd(e) {
+  if (!swiping) return;
+  swiping = false;
+  const dx = e.clientX - swipeStartX;
+  const dy = e.clientY - swipeStartY;
+  // Require a clear, horizontally-dominant swipe.
+  if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.3) return;
+  goTo(dx < 0 ? nextCat.value : prevCat.value);
+}
+
+function onSwipeCancel() {
+  swiping = false;
+}
+
 const palette = computed(() => props.cat.palette || []);
 
 // Lowest set in this cat's sub — the default set, which lives at the bare sub
@@ -188,7 +217,12 @@ watch(
           </button>
         </header>
 
-        <div class="pane-hero">
+        <div
+          class="pane-hero"
+          @pointerdown="onSwipeStart"
+          @pointerup="onSwipeEnd"
+          @pointercancel="onSwipeCancel"
+        >
           <button
             v-if="prevCat"
             type="button"

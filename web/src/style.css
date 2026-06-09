@@ -739,6 +739,29 @@ button {
   margin-right: 4px;
 }
 
+/* On phones the filter/set chips would wrap onto several lines, eating
+   vertical space. Turn them into single-line, swipeable scroll-snap rails. */
+@media (max-width: 720px) {
+  .chip-row,
+  .set-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .chip-row::-webkit-scrollbar,
+  .set-row::-webkit-scrollbar {
+    display: none;
+  }
+  .chip,
+  .set-chip,
+  .set-row-label {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+}
+
 /* Set chips — sized to match the detail page's iconography tags, smaller than
    the category chips above. */
 .set-chip {
@@ -796,25 +819,30 @@ button {
   color: inherit;
 }
 
-.thumb:hover {
-  transform: translateY(-3px);
-}
-
-.thumb:hover .thumb-name {
-  color: var(--accent);
-}
-
 .thumb .polaroid {
   transition:
     transform 0.25s,
     box-shadow 0.25s;
 }
 
-.thumb:hover .polaroid {
-  transform: rotate(-2deg) translateY(-2px);
-  box-shadow:
-    0 2px 0 rgba(0, 0, 0, 0.06),
-    0 14px 28px rgba(31, 28, 20, 0.18);
+/* Hover flourishes only where a real hover exists (mouse). On touch they
+   would stick after a tap, leaving the lifted/rotated card under the open
+   detail pane. */
+@media (hover: hover) {
+  .thumb:hover {
+    transform: translateY(-3px);
+  }
+
+  .thumb:hover .thumb-name {
+    color: var(--accent);
+  }
+
+  .thumb:hover .polaroid {
+    transform: rotate(-2deg) translateY(-2px);
+    box-shadow:
+      0 2px 0 rgba(0, 0, 0, 0.06),
+      0 14px 28px rgba(31, 28, 20, 0.18);
+  }
 }
 
 .thumb-meta {
@@ -1008,6 +1036,9 @@ body.detail-open {
     var(--paper-2),
     transparent 70%
   );
+  /* Let vertical pan (pane scroll) and pinch-zoom stay native; horizontal
+     swipes are handled in JS for prev/next navigation. */
+  touch-action: pan-y pinch-zoom;
 }
 
 .pane-polaroid {
@@ -1223,12 +1254,14 @@ body.detail-open {
   transition: transform 0.2s;
 }
 
-.also-thumb:hover {
-  transform: translateY(-2px);
-}
+@media (hover: hover) {
+  .also-thumb:hover {
+    transform: translateY(-2px);
+  }
 
-.also-thumb:hover .also-name {
-  color: var(--accent);
+  .also-thumb:hover .also-name {
+    color: var(--accent);
+  }
 }
 
 .also-name {
