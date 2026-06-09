@@ -67,8 +67,8 @@ function goTo(target) {
   );
 }
 
-// Touch swipe on the hero: left -> next cat, right -> prev (mirrors the
-// ‹ › buttons and arrow keys). Vertical drags fall through to normal pane
+// Touch swipe anywhere in the pane: left -> next cat, right -> prev (mirrors
+// the ‹ › buttons and arrow keys). Vertical drags fall through to normal pane
 // scrolling — the browser fires pointercancel and we abandon the gesture.
 // Gated to touch so mouse drags / text selection on desktop are unaffected.
 let swipeStartX = 0;
@@ -198,6 +198,9 @@ watch(
         aria-modal="true"
         :aria-labelledby="`pane-name-${cat.english_slug}`"
         ref="paneEl"
+        @pointerdown="onSwipeStart"
+        @pointerup="onSwipeEnd"
+        @pointercancel="onSwipeCancel"
       >
         <header class="pane-hdr">
           <nav class="pane-crumb" aria-label="Breadcrumb">
@@ -217,12 +220,7 @@ watch(
           </button>
         </header>
 
-        <div
-          class="pane-hero"
-          @pointerdown="onSwipeStart"
-          @pointerup="onSwipeEnd"
-          @pointercancel="onSwipeCancel"
-        >
+        <div class="pane-hero">
           <button
             v-if="prevCat"
             type="button"

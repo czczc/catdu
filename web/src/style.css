@@ -37,6 +37,7 @@ html,
 body {
   margin: 0;
   padding: 0;
+  overflow-x: hidden;
 }
 
 body {
@@ -749,6 +750,12 @@ button {
     scroll-snap-type: x proximity;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    min-width: 0;
+  }
+  /* .chip-row is a flex child of .filter-bar — claim its own full-width row so
+     its nowrap contents scroll internally instead of widening the page. */
+  .chip-row {
+    flex: 1 1 100%;
   }
   .chip-row::-webkit-scrollbar,
   .set-row::-webkit-scrollbar {
@@ -945,11 +952,17 @@ body.detail-open {
   border-left: 1px solid var(--hair);
   box-shadow: -32px 0 64px rgba(31, 28, 20, 0.18);
   overflow-y: auto;
+  /* overflow-y:auto makes overflow-x compute to auto; pin it to hidden so a
+     hair-too-wide child can't make the pane pan sideways. */
+  overflow-x: hidden;
   overscroll-behavior: contain;
   padding: 28px 36px 56px;
   display: flex;
   flex-direction: column;
   gap: 28px;
+  /* Vertical pan (pane scroll) and pinch-zoom stay native; horizontal swipes
+     anywhere in the pane are handled in JS for prev/next navigation. */
+  touch-action: pan-y pinch-zoom;
 }
 
 .detail-pane-enter-active,
@@ -1036,9 +1049,6 @@ body.detail-open {
     var(--paper-2),
     transparent 70%
   );
-  /* Let vertical pan (pane scroll) and pinch-zoom stay native; horizontal
-     swipes are handled in JS for prev/next navigation. */
-  touch-action: pan-y pinch-zoom;
 }
 
 .pane-polaroid {
@@ -1296,8 +1306,17 @@ body.detail-open {
 }
 
 @media (max-width: 520px) {
+  /* Full-screen detail page on phones, not a right-hand side panel. */
   .detail-pane {
+    width: 100%;
+    border-left: 0;
+    box-shadow: none;
     padding: 20px 22px 40px;
+  }
+  /* Rise into view instead of sliding in from the right. */
+  .detail-pane-enter-from,
+  .detail-pane-leave-to {
+    transform: translateY(18px);
   }
   .pane-hdr {
     margin: -20px -22px 0;
